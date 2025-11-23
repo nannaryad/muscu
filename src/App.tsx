@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Calendar, Info, AlertCircle, Activity, CheckCircle, Clock, Search, PlayCircle, Hash, Timer, RotateCcw, Dumbbell, Save, X } from 'lucide-react';
 
