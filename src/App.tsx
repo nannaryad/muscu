@@ -1,8 +1,11 @@
-// @ts-nocheck
-import React, { useState, useEffect } from 'react';
-import { Calendar, Info, AlertCircle, Activity, CheckCircle, Clock, Search, PlayCircle, Hash, Timer, RotateCcw, Dumbbell, Save, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Calendar, Info, AlertCircle, Activity, CheckCircle, 
+  Clock, Search, PlayCircle, Hash, Timer, RotateCcw, 
+  Dumbbell, Save, X, ChevronRight, Trophy, FileText, Trash2 
+} from 'lucide-react';
 
-// --- DATA ---
+// --- DONNÉES DU PROGRAMME (Identique, structure préservée) ---
 const WarmUpRoutine = [
   { name: "Rotations externes élastique (L-Fly)", reps: "2 x 15-20" },
   { name: "Dislocations élastique/bâton", reps: "2 x 10" },
@@ -80,9 +83,31 @@ const ProgramData = {
   }
 };
 
+// --- HOOKS ---
+// Hook pour gérer le localStorage
+const useStickyState = (defaultValue, key) => {
+  const [value, setValue] = useState(() => {
+    try {
+      const stickyValue = window.localStorage.getItem(key);
+      return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
+    } catch (err) {
+      return defaultValue;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) {
+      console.error("Erreur de sauvegarde localStorage", err);
+    }
+  }, [key, value]);
+
+  return [value, setValue];
+};
+
 // --- COMPONENTS ---
 
-// Chronomètre flottant
 const FloatingTimer = ({ targetTime, onClose }) => {
   const [timeLeft, setTimeLeft] = useState(targetTime);
   const [isActive, setIsActive] = useState(true);
@@ -93,7 +118,6 @@ const FloatingTimer = ({ targetTime, onClose }) => {
       interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
     } else if (timeLeft === 0) {
       setIsActive(false);
-      // Petite vibration si sur mobile (support limité mais possible)
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
     return () => clearInterval(interval);
@@ -102,46 +126,35 @@ const FloatingTimer = ({ targetTime, onClose }) => {
   const progress = ((targetTime - timeLeft) / targetTime) * 100;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-slate-900 text-white p-4 rounded-xl shadow-2xl z-50 w-64 border border-slate-700 animate-slide-up">
+    <div className="fixed bottom-4 right-4 bg-slate-900 text-white p-4 rounded-xl shadow-2xl z-50 w-64 border border-slate-700 animate-in fade-in slide-in-from-bottom-5">
       <div className="flex justify-between items-center mb-2">
         <span className="font-bold text-sm text-slate-300">Repos</span>
         <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={16}/></button>
       </div>
       <div className="flex items-center justify-between mb-2">
-        <div className="text-3xl font-mono font-bold text-blue-400">
+        <div className={`text-3xl font-mono font-bold ${timeLeft === 0 ? 'text-green-400' : 'text-blue-400'}`}>
           {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={() => setTimeLeft(t => t + 10)} 
-            className="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs font-bold"
-          >
-            +10s
-          </button>
-          <button 
-             onClick={() => setIsActive(!isActive)}
-             className={`px-3 py-1 rounded text-xs font-bold ${isActive ? 'bg-yellow-600' : 'bg-green-600'}`}
-          >
-            {isActive ? 'Pause' : 'Reprendre'}
+          <button onClick={() => setTimeLeft(t => t + 10)} className="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs font-bold">+10s</button>
+          <button onClick={() => setIsActive(!isActive)} className={`px-3 py-1 rounded text-xs font-bold ${isActive ? 'bg-yellow-600' : 'bg-green-600'}`}>
+            {isActive ? 'Pause' : 'Go'}
           </button>
         </div>
       </div>
       <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-        <div 
-          className="h-full bg-blue-500 transition-all duration-1000 linear" 
-          style={{ width: `${100 - progress}%` }}
-        />
+        <div className={`h-full transition-all duration-1000 linear ${timeLeft === 0 ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${Math.max(0, 100 - progress)}%` }} />
       </div>
     </div>
   );
 };
 
 const WarmUpModal = ({ onClose }) => (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in">
     <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <Activity className="text-orange-500"/> Échauffement Épaules
+          <Activity className="text-orange-500"/> Échauffement
         </h3>
         <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full"><X size={24} /></button>
       </div>
@@ -160,32 +173,55 @@ const WarmUpModal = ({ onClose }) => (
   </div>
 );
 
-const ExerciseCard = ({ exercise, index, onStartTimer }) => {
-  const [completed, setCompleted] = useState(false);
-  const [weight, setWeight] = useState("");
+const ExerciseCard = ({ exercise, index, onStartTimer, data, onUpdateData }) => {
+  const [showNotes, setShowNotes] = useState(false);
+  const totalSets = exercise.sets;
   
+  // Initialiser les sets complétés si pas encore dans le state
+  const completedSets = data?.completedSets || Array(totalSets).fill(false);
+  const isFullyCompleted = completedSets.every(Boolean);
+  
+  const toggleSet = (idx) => {
+    const newSets = [...completedSets];
+    newSets[idx] = !newSets[idx];
+    
+    // Si on coche une série, on lance le timer automatiquement si c'est pas la dernière
+    if (newSets[idx] && idx < totalSets - 1) {
+       onStartTimer(exercise.rest);
+    }
+
+    onUpdateData({ ...data, completedSets: newSets });
+  };
+
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + " musculation exécution")}`;
   const imageUrl = `https://placehold.co/300x200/f1f5f9/334155?text=${encodeURIComponent(exercise.name.split(" ").slice(0, 2).join(" "))}`;
 
   return (
-    <div className={`rounded-xl shadow-md overflow-hidden transition-all duration-300 border flex flex-col h-full group ${completed ? 'bg-green-50 border-green-200 opacity-80' : 'bg-white border-gray-100'}`}>
+    <div className={`rounded-xl shadow-md overflow-hidden transition-all duration-300 border flex flex-col h-full group ${isFullyCompleted ? 'bg-green-50/50 border-green-200 order-last opacity-75' : 'bg-white border-gray-100'}`}>
       
+      {/* En-tête simplifié si complété */}
+      {isFullyCompleted && (
+         <div className="p-2 bg-green-100 text-green-800 text-center font-bold text-xs flex justify-between px-4 items-center">
+            <span>Exercice terminé</span>
+            <button onClick={() => onUpdateData({ ...data, completedSets: Array(totalSets).fill(false) })} className="text-green-600 hover:text-green-900"><RotateCcw size={14}/></button>
+         </div>
+      )}
+
       {/* Zone Image */}
-      <div className="relative h-40 bg-gray-200 overflow-hidden">
+      <div className={`relative bg-gray-200 overflow-hidden ${isFullyCompleted ? 'h-20' : 'h-40'} transition-all duration-500`}>
         <img 
           src={imageUrl} 
           alt={exercise.name} 
           className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => {e.target.src = 'https://placehold.co/300x200/e2e8f0/64748b?text=Exercice';}}
         />
-        <div className="absolute top-2 left-2 bg-slate-900/80 text-white text-xs font-bold px-2.5 py-1 rounded-md">
+        <div className="absolute top-2 left-2 bg-slate-900/80 text-white text-xs font-bold px-2.5 py-1 rounded-md z-10">
           #{index + 1}
         </div>
          <a 
           href={searchUrl} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="absolute bottom-2 right-2 bg-white/90 p-2 rounded-full text-blue-600 hover:scale-110 transition shadow-sm"
+          className="absolute bottom-2 right-2 bg-white/90 p-2 rounded-full text-blue-600 hover:scale-110 transition shadow-sm z-10"
         >
           <PlayCircle size={20} />
         </a>
@@ -194,135 +230,211 @@ const ExerciseCard = ({ exercise, index, onStartTimer }) => {
       {/* Zone Contenu */}
       <div className="p-4 flex-grow flex flex-col">
         <div className="flex justify-between items-start mb-2">
-            <h3 className={`font-bold text-lg leading-tight ${completed ? 'text-green-800 line-through decoration-2' : 'text-gray-800'}`}>
+            <h3 className={`font-bold text-lg leading-tight ${isFullyCompleted ? 'text-green-800 line-through decoration-2' : 'text-gray-800'}`}>
                 {exercise.name}
             </h3>
-            <button 
-                onClick={() => setCompleted(!completed)}
-                className={`p-1 rounded-full border-2 transition-colors ${completed ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-300 hover:border-green-500 hover:text-green-500'}`}
+        </div>
+
+        {/* Info Grid */}
+        <div className="flex items-center gap-2 mb-4 text-sm text-slate-600">
+           <span className="bg-slate-100 px-2 py-1 rounded font-mono">{exercise.sets} séries</span>
+           <span className="bg-slate-100 px-2 py-1 rounded font-mono">{exercise.reps} reps</span>
+           <button 
+              onClick={() => onStartTimer(exercise.rest)}
+              className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-1 rounded hover:bg-orange-100 font-bold ml-auto"
             >
-                <CheckCircle size={20} className={completed ? "fill-current" : ""} />
-            </button>
+              <Timer size={14}/> {exercise.rest}s
+           </button>
         </div>
 
-        {/* Stats Grid Interactif */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="bg-slate-50 p-2 rounded border border-slate-100 text-center">
-            <span className="block text-xs uppercase text-gray-400 font-bold">Séries</span>
-            <span className="font-bold text-slate-700">{exercise.sets}</span>
-          </div>
-          <div className="bg-slate-50 p-2 rounded border border-slate-100 text-center">
-            <span className="block text-xs uppercase text-gray-400 font-bold">Reps</span>
-            <span className="font-bold text-slate-700">{exercise.reps}</span>
-          </div>
-          <button 
-            onClick={() => onStartTimer(exercise.rest)}
-            className="bg-orange-50 hover:bg-orange-100 p-2 rounded border border-orange-100 text-center cursor-pointer transition-colors group/timer"
-          >
-            <span className="block text-xs uppercase text-orange-400 font-bold group-hover/timer:text-orange-600">Repos</span>
-            <div className="flex items-center justify-center gap-1 font-bold text-orange-600">
-               <Timer size={14} /> {exercise.rest}s
+        {/* Tracker de Séries (Interactive Dots) */}
+        <div className="mb-4">
+            <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Validation des séries</span>
             </div>
-          </button>
+            <div className="flex gap-2">
+                {Array.from({ length: totalSets }).map((_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => toggleSet(i)}
+                        className={`
+                            h-10 flex-1 rounded-lg border-2 font-bold text-sm transition-all flex items-center justify-center
+                            ${completedSets[i] 
+                                ? 'bg-green-500 border-green-500 text-white shadow-sm scale-95' 
+                                : 'bg-white border-slate-200 text-slate-300 hover:border-blue-400 hover:text-blue-400'}
+                        `}
+                    >
+                        {i + 1}
+                    </button>
+                ))}
+            </div>
         </div>
 
-        {/* Input Performance */}
-        <div className="flex gap-2 mb-3">
-             <div className="relative flex-1">
-                <input 
-                    type="number" 
-                    placeholder="Charge (kg)" 
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition"
-                />
-                <Dumbbell size={14} className="absolute right-2 top-2 text-gray-400" />
+        {/* Input Charge & Notes */}
+        <div className="mt-auto space-y-2">
+             <div className="flex gap-2">
+                <div className="relative flex-1">
+                    <input 
+                        type="number" 
+                        placeholder="Poids (kg)" 
+                        value={data?.weight || ""}
+                        onChange={(e) => onUpdateData({ ...data, weight: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition font-bold text-slate-700"
+                    />
+                    <Dumbbell size={14} className="absolute right-2 top-3 text-gray-400" />
+                </div>
+                <button 
+                    onClick={() => setShowNotes(!showNotes)}
+                    className={`px-3 rounded border border-gray-200 hover:bg-gray-50 transition ${data?.notes ? 'text-blue-500 bg-blue-50 border-blue-200' : 'text-gray-400'}`}
+                >
+                    <FileText size={18} />
+                </button>
              </div>
+             
+             {showNotes && (
+                 <textarea
+                    placeholder="Notes (douleur, facilité, réglage machine...)"
+                    value={data?.notes || ""}
+                    onChange={(e) => onUpdateData({ ...data, notes: e.target.value })}
+                    className="w-full text-xs p-2 bg-yellow-50 border border-yellow-200 rounded text-slate-600 focus:outline-none resize-none h-16"
+                 />
+             )}
         </div>
         
-        {/* Tutorial */}
-        <div className="bg-blue-50/50 p-2 rounded text-xs text-blue-800 leading-snug flex gap-2">
-             <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-400" />
-             {exercise.tutorial}
-        </div>
+        {/* Tutorial Hint */}
+        {!isFullyCompleted && (
+            <div className="mt-3 pt-3 border-t border-dashed border-gray-100">
+                <p className="text-xs text-slate-500 leading-snug flex gap-2">
+                    <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-400" />
+                    {exercise.tutorial}
+                </p>
+            </div>
+        )}
       </div>
     </div>
   );
 };
 
-const DaySection = ({ title, exercises, onStartTimer }) => (
-  <div className="mb-8">
-    <div className="flex items-center gap-2 mb-4">
-      <h2 className="text-xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3">{title}</h2>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {exercises.map((exo, idx) => (
-        <ExerciseCard key={exo.id} exercise={exo} index={idx} onStartTimer={onStartTimer} />
-      ))}
-    </div>
-  </div>
-);
-
 export default function App() {
-  const [activeWeek, setActiveWeek] = useState("A");
+  const [activeWeek, setActiveWeek] = useStickyState("A", "workout_active_week");
   const [timerDuration, setTimerDuration] = useState(null);
   const [showWarmUp, setShowWarmUp] = useState(false);
+  const [workoutData, setWorkoutData] = useStickyState({}, "workout_data_v1");
+
+  // Calcul de la progression
+  const currentExercises = ProgramData.weeks[activeWeek];
+  let totalSetsCount = 0;
+  let completedSetsCount = 0;
+
+  Object.values(currentExercises).flat().forEach(exo => {
+      totalSetsCount += exo.sets; // Total théorique
+      const sets = workoutData[`${activeWeek}-${exo.id}`]?.completedSets;
+      if (sets) {
+          completedSetsCount += sets.filter(Boolean).length;
+      }
+  });
+
+  const progressPercentage = Math.round((completedSetsCount / totalSetsCount) * 100) || 0;
+
+  // Fonction pour mettre à jour les données d'un exercice spécifique
+  const updateExerciseData = (exoId, newData) => {
+      setWorkoutData(prev => ({
+          ...prev,
+          [`${activeWeek}-${exoId}`]: newData
+      }));
+  };
+
+  const resetWeekData = () => {
+    if(window.confirm("Voulez-vous vraiment effacer toutes les données de la semaine " + activeWeek + " ?")) {
+        // On ne supprime que les clés de la semaine active
+        const newData = { ...workoutData };
+        Object.values(currentExercises).flat().forEach(exo => {
+            delete newData[`${activeWeek}-${exo.id}`];
+        });
+        setWorkoutData(newData);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24">
       
-      {/* Header Compact */}
-      <header className="bg-slate-900 text-white p-4 sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="font-bold text-lg leading-tight">Programme <span className="text-blue-400">Conflit</span></h1>
-            <p className="text-xs text-slate-400">Semaine {activeWeek}</p>
+      {/* Header Avancé */}
+      <header className="bg-slate-900 text-white pt-4 pb-6 sticky top-0 z-30 shadow-lg rounded-b-3xl">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="font-bold text-xl leading-none mb-1">Programme <span className="text-blue-400">Rehab</span></h1>
+              <p className="text-xs text-slate-400 font-medium">Semaine {activeWeek} • {completedSetsCount}/{totalSetsCount} séries</p>
+            </div>
+            
+            <div className="flex bg-slate-800 p-1 rounded-lg">
+                {['A', 'B'].map((week) => (
+                  <button
+                    key={week}
+                    onClick={() => setActiveWeek(week)}
+                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+                      activeWeek === week ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Semaine {week}
+                  </button>
+                ))}
+            </div>
           </div>
-          
-          <div className="flex gap-2">
+
+          {/* Barre de progression */}
+          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-4">
+               <div 
+                 className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-green-400 transition-all duration-700 ease-out"
+                 style={{ width: `${progressPercentage}%` }}
+               />
+          </div>
+
+          <div className="flex gap-3 justify-between">
              <button 
                 onClick={() => setShowWarmUp(true)}
-                className="bg-orange-600 hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1 transition shadow-lg shadow-orange-900/20"
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-orange-400 border border-slate-700 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition"
              >
-                <Activity size={14} /> <span className="hidden sm:inline">Échauffement</span>
+                <Activity size={16} /> Échauffement
              </button>
-             <div className="bg-slate-800 p-1 rounded-lg flex">
-              {['A', 'B'].map((week) => (
-                <button
-                  key={week}
-                  onClick={() => setActiveWeek(week)}
-                  className={`px-3 py-1 rounded text-xs font-bold transition-all ${
-                    activeWeek === week ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {week}
-                </button>
-              ))}
-            </div>
+             <button 
+                onClick={resetWeekData}
+                className="bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 border border-slate-700 p-2 rounded-lg transition"
+                title="Réinitialiser la semaine"
+             >
+                <Trash2 size={16} />
+             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        
-        {/* Intro Alert */}
-        <div className="bg-white border border-blue-100 rounded-lg p-3 mb-6 shadow-sm flex gap-3 text-sm">
-           <AlertCircle className="text-blue-500 flex-shrink-0" size={20}/>
-           <p className="text-slate-600">
-             Cliquez sur le temps de repos <span className="font-bold text-orange-500 inline-flex items-center gap-0.5"><Timer size={10}/> 90s</span> pour lancer le chrono. Cochez les cases pour valider.
-           </p>
-        </div>
+        <div className="space-y-8">
+          {Object.entries(currentExercises).map(([dayName, exercises]) => (
+            <div key={dayName} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+               <div className="flex items-center gap-3 mb-4 sticky top-40 z-10 bg-gray-50/95 backdrop-blur py-2 border-b border-gray-200">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">
+                      {dayName.match(/Jour (\d)/)[1]}
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-800 leading-tight">
+                    {dayName.split('(')[1].replace(')', '')}
+                  </h2>
+               </div>
 
-        {/* Days Display */}
-        <div className="space-y-6">
-          {Object.entries(ProgramData.weeks[activeWeek]).map(([dayName, exercises]) => (
-            <DaySection 
-                key={dayName} 
-                title={dayName} 
-                exercises={exercises} 
-                onStartTimer={setTimerDuration}
-            />
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {exercises.map((exo, idx) => (
+                    <ExerciseCard 
+                        key={exo.id} 
+                        exercise={exo} 
+                        index={idx} 
+                        onStartTimer={setTimerDuration}
+                        data={workoutData[`${activeWeek}-${exo.id}`] || {}}
+                        onUpdateData={(newData) => updateExerciseData(exo.id, newData)}
+                    />
+                  ))}
+               </div>
+            </div>
           ))}
         </div>
       </main>
