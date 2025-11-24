@@ -6,86 +6,87 @@ import {
   Check, X, Play, User, 
   Scale, Utensils, Droplet, Moon, Trash2, Download, Ruler,
   Calculator, Disc, Save, Share2, Clock, StickyNote, Flame, Pause, PlayCircle,
-  Info, Volume2, VolumeX, Upload, Battery, Youtube
+  Info, Volume2, VolumeX, Upload, Battery, Youtube, TrendingUp, Target, LogOut, Mail, Lock, Loader,
+  Timer as TimerIcon, PieChart, HelpCircle, History, HeartPulse, Music
 } from 'lucide-react';
 
-// --- DATA (Avec Tutoriels Réintégrés) ---
+// --- FIREBASE IMPORTS ---
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, signOut, signInWithCustomToken, signInAnonymously 
+} from 'firebase/auth';
+import { 
+  getFirestore, doc, setDoc, onSnapshot, updateDoc 
+} from 'firebase/firestore';
+
+// --- FIREBASE CONFIG & INIT ---
+const firebaseConfig = JSON.parse(__firebase_config || '{}');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+// --- DATA ---
 const WarmUpRoutine = [
-  { name: "Rotations externes élastique (L-Fly)", reps: "2 x 15-20" },
-  { name: "Dislocations élastique/bâton", reps: "2 x 10" },
-  { name: "Scapular Push-ups (Serratus)", reps: "2 x 12" },
-  { name: "Élévations Y-T-W au sol", reps: "2 x 10" }
+  { name: "Rotations externes élastique", reps: "2 x 15-20" },
+  { name: "Dislocations bâton", reps: "2 x 10" },
+  { name: "Scapular Push-ups", reps: "2 x 12" },
+  { name: "Y-T-W au sol", reps: "2 x 10" }
 ];
 
 const ProgramData = {
   weeks: {
     "A": {
       "Jour 1 (Push)": [
-        { id: 101, name: "Développé incliné haltères", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Banc incliné à 30° max. Prise neutre (paumes face à face) pour protéger l'épaule. Descendez les haltères vers le creux de l'aisselle." },
-        { id: 102, name: "Presse pectoraux guidée", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Réglez le siège pour que les poignées soient au niveau des tétons. Gardez les coudes sous le niveau des épaules. Ne décollez pas le dos." },
-        { id: 103, name: "Écarté poulie bas → haut", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Poulies au sol. Tirez vers le haut et l'intérieur (niveau visage). Gardez les bras semi-fléchis comme pour faire un câlin à un arbre." },
-        { id: 104, name: "Élévations latérales", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Bras légèrement fléchis. Montez les coudes (pas les mains) jusqu'à la hauteur des épaules. Ne balancez pas le buste." },
-        { id: 105, name: "Floor Press", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Allongé au sol avec haltères. Les coudes touchent le sol à chaque rep, ce qui limite l'amplitude et protège l'articulation." },
-        { id: 106, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Poulie haute. Tirez la corde vers vos yeux en écartant les mains. Finissez en position 'double biceps'. Indispensable pour la coiffe." },
-        { id: 107, name: "Extension corde triceps", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Coudes collés aux côtes. Écartez la corde en bas du mouvement pour contracter le triceps." }
+        { id: 101, name: "Dev. incliné haltères", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Banc 30°. Prise neutre. Contrôlez la descente." },
+        { id: 102, name: "Presse pectoraux", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Poignées hauteur tétons. Coudes sous les épaules." },
+        { id: 103, name: "Écarté poulie bas", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Tirez vers le haut et l'intérieur. Bras semi-fléchis." },
+        { id: 104, name: "Élévations latérales", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Coudes hauteur épaules. Ne balancez pas." },
+        { id: 105, name: "Floor Press", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Dos au sol. Les coudes touchent le sol à chaque rep." },
+        { id: 106, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Tirez vers les yeux. Rotation externe en fin de course." },
+        { id: 107, name: "Extension triceps", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Coudes fixes aux côtes. Écartez la corde en bas." }
       ],
       "Jour 2 (Pull)": [
-        { id: 201, name: "Tractions / Tirage neutre", sets: 4, targetReps: "8-10", rest: 120, tutorial: "Prise neutre ou supination préférée. Sortez la poitrine. Tirez les coudes vers le bas." },
-        { id: 202, name: "Rowing haltère", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Un genou sur le banc. Dos plat. Tirez l'haltère vers la hanche (pas vers l'épaule)." },
-        { id: 203, name: "Tirage horizontal", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Buste droit. Tirez vers le nombril. Serrez les omoplates à la fin du mouvement." },
-        { id: 204, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Voir Jour 1. Focus sur la rotation externe." },
-        { id: 205, name: "Curl incliné", sets: 3, targetReps: "10-12", rest: 60, tutorial: "Banc à 45°. Bras en arrière du corps. Étire le chef long du biceps." }
+        { id: 201, name: "Tractions / Tirage", sets: 4, targetReps: "8-10", rest: 120, tutorial: "Sortez la poitrine. Tirez les coudes vers le bas." },
+        { id: 202, name: "Rowing haltère", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Dos plat. Tirez vers la hanche." },
+        { id: 203, name: "Tirage horizontal", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Tirez vers le nombril. Serrez les omoplates." },
+        { id: 204, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Focus rotation externe." },
+        { id: 205, name: "Curl incliné", sets: 3, targetReps: "10-12", rest: 60, tutorial: "Banc 45°. Bras en arrière. Étirement max." }
       ],
       "Jour 3 (Legs)": [
-        { id: 301, name: "Presse à cuisses", sets: 4, targetReps: "10-15", rest: 120, tutorial: "Pieds largeur bassin. Ne tendez jamais les jambes à fond (gardez une légère flexion)." },
-        { id: 302, name: "Fentes marchées", sets: 3, targetReps: "12 pas", rest: 90, tutorial: "Grands pas. Le genou arrière frôle le sol. Buste droit." },
-        { id: 303, name: "Leg extension", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Contrôlez la descente. Ne donnez pas d'élan." },
-        { id: 304, name: "Leg curl", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Tirez les talons vers les fesses. Gardez le bassin plaqué au banc." },
-        { id: 305, name: "Mollets debout", sets: 4, targetReps: "15-20", rest: 45, tutorial: "Montez le plus haut possible sur la pointe des pieds." }
+        { id: 301, name: "Presse à cuisses", sets: 4, targetReps: "10-15", rest: 120, tutorial: "Ne verrouillez pas les genoux." },
+        { id: 302, name: "Fentes marchées", sets: 3, targetReps: "12 pas", rest: 90, tutorial: "Genou arrière frôle le sol." },
+        { id: 303, name: "Leg extension", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Contrôlez la descente." },
+        { id: 304, name: "Leg curl", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Talon aux fesses." },
+        { id: 305, name: "Mollets debout", sets: 4, targetReps: "15-20", rest: 45, tutorial: "Amplitude maximale." }
       ]
     },
     "B": {
       "Jour 1 (Push)": [
-        { id: 401, name: "Dev. Incliné Smith", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Barre guidée. Banc à 30°. Contrôle total." },
-        { id: 402, name: "Dev. Couché Haltères", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Prise neutre pour l'épaule. Resserrez les omoplates." },
-        { id: 403, name: "Câbles croisés", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Poulies hautes. Croisez les mains en bas. Focus bas de pecs." },
-        { id: 404, name: "Élévations latérales poulie", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Poulie basse derrière le dos. Tirez sur le côté." },
-        { id: 405, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Toujours et encore. C'est la clé de la santé épaule." }
+        { id: 401, name: "Dev. Incliné Smith", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Barre guidée. Banc 30°." },
+        { id: 402, name: "Dev. Couché Haltères", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Prise neutre. Omoplates serrées." },
+        { id: 403, name: "Câbles croisés", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Poulies hautes. Croisez en bas." },
+        { id: 404, name: "Élévations lat. poulie", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Poulie basse derrière le dos." },
+        { id: 405, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Toujours et encore." }
       ],
       "Jour 2 (Pull)": [
-        { id: 501, name: "Tirage vertical neutre", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Poignée triangle V-Bar. Tirez vers le haut des pecs." },
-        { id: 502, name: "Rowing machine", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Appui thoracique si possible. Tirez les coudes loin derrière." },
-        { id: 503, name: "Pull-over poulie", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Bras tendus. Amenez la barre des yeux jusqu'aux cuisses. Travail du grand dorsal." },
-        { id: 504, name: "Curl EZ", sets: 3, targetReps: "10-12", rest: 60, tutorial: "Barre tordue. Coudes fixes." }
+        { id: 501, name: "Tirage vertical neutre", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Prise serrée (Triangle). Haut de poitrine." },
+        { id: 502, name: "Rowing machine", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Coudes loin derrière." },
+        { id: 503, name: "Pull-over poulie", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Bras tendus. Mouvement d'arc." },
+        { id: 504, name: "Curl EZ", sets: 3, targetReps: "10-12", rest: 60, tutorial: "Coudes fixes." }
       ],
       "Jour 3 (Legs)": [
-        { id: 601, name: "Squat guidé", sets: 4, targetReps: "8-12", rest: 120, tutorial: "Pieds un peu en avant. Dos droit. Descendez les fesses." },
-        { id: 602, name: "Hip Thrust", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Barre sur le bassin. Contractez fort les fessiers en haut." },
-        { id: 603, name: "Bulgarian split squat", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Un pied sur banc derrière. Descendez verticalement." },
-        { id: 604, name: "Leg curl allongé", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Classique ischios. Pas d'élan." }
+        { id: 601, name: "Squat guidé", sets: 4, targetReps: "8-12", rest: 120, tutorial: "Pieds en avant. Dos droit." },
+        { id: 602, name: "Hip Thrust", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Contractez fessiers en haut." },
+        { id: 603, name: "Bulgarian split squat", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Unilatéral. Descendez droit." },
+        { id: 604, name: "Leg curl allongé", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Ischios. Pas d'élan." }
       ]
     }
   }
 };
 
-// --- UTILS & HOOKS ---
-
-const useStickyState = (defaultValue, key) => {
-  const [value, setValue] = useState(() => {
-    try {
-      const stickyValue = window.localStorage.getItem(key);
-      return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
-    } catch (err) { return defaultValue; }
-  });
-  useEffect(() => {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
-  return [value, setValue];
-};
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-};
+// --- HOOKS & HELPERS ---
 
 const calculateBMI = (weight, heightCm) => {
     if (!weight || !heightCm) return { value: 0, label: '-', color: 'text-slate-500' };
@@ -103,6 +104,107 @@ const calculateBMI = (weight, heightCm) => {
 
 // --- COMPONENTS ---
 
+// 1. Auth Screen
+const AuthScreen = ({ onLogin }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch (err) {
+      setError(err.message.includes('auth/') ? "Erreur d'authentification (Vérifiez vos identifiants)" : err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-6">
+      <div className="w-full max-w-sm bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
+        <div className="flex justify-center mb-6">
+           <div className="w-12 h-12 bg-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
+               <span className="font-black text-slate-900 text-xl">R</span>
+           </div>
+        </div>
+        <h2 className="text-2xl font-bold text-white text-center mb-1">
+          {isLogin ? 'Bon retour !' : 'Créer un compte'}
+        </h2>
+        <p className="text-slate-400 text-center text-sm mb-8">
+          {isLogin ? 'Connectez-vous pour retrouver vos stats.' : 'Rejoignez le programme RehabPro.'}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Email</label>
+            <div className="relative">
+                <Mail size={16} className="absolute left-3 top-3 text-slate-500"/>
+                <input 
+                  type="email" 
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-white focus:border-cyan-500 focus:outline-none transition-all"
+                  placeholder="exemple@email.com"
+                />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Mot de passe</label>
+            <div className="relative">
+                <Lock size={16} className="absolute left-3 top-3 text-slate-500"/>
+                <input 
+                  type="password" 
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-white focus:border-cyan-500 focus:outline-none transition-all"
+                  placeholder="••••••••"
+                />
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex gap-2 items-center">
+                <X size={16} className="text-red-500 shrink-0"/>
+                <span className="text-red-400 text-xs">{error}</span>
+            </div>
+          )}
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-cyan-900/20 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
+          >
+            {loading ? <Loader size={18} className="animate-spin"/> : (isLogin ? 'Se connecter' : "S'inscrire")}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button 
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-sm text-slate-400 hover:text-white transition-colors"
+          >
+            {isLogin ? "Pas encore de compte ? S'inscrire" : 'Déjà un compte ? Se connecter'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 2. SessionTimer Component (RESTORED)
 const SessionTimer = () => {
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
@@ -137,49 +239,124 @@ const SessionTimer = () => {
     );
 };
 
-const WarmUpModal = ({ onClose }) => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
-        <div className="bg-slate-900 rounded-xl max-w-sm w-full border border-slate-700 overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-orange-900/10">
-                <h3 className="font-bold text-orange-500 flex items-center gap-2">
-                    <Flame size={18}/> Routine Échauffement
-                </h3>
-                <button onClick={onClose}><X size={20} className="text-slate-400"/></button>
-            </div>
-            <div className="p-4 space-y-3">
-                {WarmUpRoutine.map((exo, i) => (
-                    <div key={i} className="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700">
-                        <span className="text-sm font-medium text-slate-200">{exo.name}</span>
-                        <span className="text-xs font-bold bg-slate-900 px-2 py-1 rounded text-orange-400 border border-slate-700">{exo.reps}</span>
+// 3. Settings Page Component (RESTORED)
+const SettingsPage = ({ profile, settings, onUpdateProfile, onUpdateSettings, onResetData, onImportData }) => {
+    // Safe defaults
+    const safeSettings = settings || { sound: true, vibration: true };
+
+    return (
+        <div className="p-4 space-y-6 animate-in slide-in-from-right-10">
+            <h2 className="text-xl font-bold text-white mb-6">Réglages</h2>
+            
+            <section className="space-y-4">
+                <h3 className="text-xs font-bold uppercase text-slate-500">Profil Utilisateur</h3>
+                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                    <div className="p-4 space-y-4">
+                        <div>
+                             <label className="text-xs text-slate-400 mb-1 block">Nom / Pseudo</label>
+                             <input 
+                                type="text"
+                                value={profile.name || ''}
+                                onChange={(e) => onUpdateProfile('name', e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-cyan-500 focus:outline-none"
+                             />
+                        </div>
                     </div>
-                ))}
-            </div>
-            <button onClick={onClose} className="w-full p-4 bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm uppercase tracking-wider transition-colors">
-                Prêt à feu !
-            </button>
+                </div>
+            </section>
+            
+            <section className="space-y-4">
+                <h3 className="text-xs font-bold uppercase text-slate-500">Préférences</h3>
+                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                     <button 
+                        onClick={() => onUpdateSettings('sound', !safeSettings.sound)}
+                        className="w-full p-4 border-b border-slate-700 flex justify-between items-center hover:bg-slate-700/50"
+                     >
+                        <div className="flex items-center gap-3">
+                            {safeSettings.sound ? <Volume2 size={20} className="text-cyan-500"/> : <VolumeX size={20} className="text-slate-500"/>}
+                            <span className="text-sm font-medium text-slate-200">Sons (Timer)</span>
+                        </div>
+                        <div className={`w-10 h-5 rounded-full relative transition-colors ${safeSettings.sound ? 'bg-cyan-600' : 'bg-slate-600'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${safeSettings.sound ? 'left-6' : 'left-1'}`}></div>
+                        </div>
+                     </button>
+                     <button 
+                        onClick={() => onUpdateSettings('vibration', !safeSettings.vibration)}
+                        className="w-full p-4 border-b border-slate-700 flex justify-between items-center hover:bg-slate-700/50"
+                     >
+                        <div className="flex items-center gap-3">
+                            <Activity size={20} className={safeSettings.vibration ? "text-cyan-500" : "text-slate-500"}/>
+                            <span className="text-sm font-medium text-slate-200">Vibrations</span>
+                        </div>
+                        <div className={`w-10 h-5 rounded-full relative transition-colors ${safeSettings.vibration ? 'bg-cyan-600' : 'bg-slate-600'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${safeSettings.vibration ? 'left-6' : 'left-1'}`}></div>
+                        </div>
+                     </button>
+                </div>
+            </section>
+
+            <section className="space-y-4">
+                <h3 className="text-xs font-bold uppercase text-slate-500">Gestion des Données</h3>
+                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden p-4 space-y-4">
+                    <label className="flex items-center gap-3 w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white rounded border border-slate-500 justify-center cursor-pointer transition">
+                        <Upload size={16}/> Import Sauvegarde (JSON)
+                        <input type="file" accept=".json" onChange={onImportData} className="hidden" />
+                    </label>
+
+                    <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-4 mt-4">
+                        <p className="text-xs text-red-400 mb-4">
+                            Zone Danger : Suppression irréversible.
+                        </p>
+                        <button 
+                            onClick={onResetData}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-900/50 hover:bg-red-900 text-red-200 rounded border border-red-800 transition-colors text-sm font-bold"
+                        >
+                            <Trash2 size={16} /> Tout effacer
+                        </button>
+                    </div>
+                </div>
+            </section>
         </div>
+    );
+};
+
+// --- SUB-COMPONENTS ---
+
+const Modal = ({ title, onClose, children }) => (
+  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in duration-200">
+    <div className="bg-slate-900 w-full sm:max-w-md h-[85vh] sm:h-auto sm:rounded-2xl rounded-t-2xl border border-slate-700 flex flex-col shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
+      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 rounded-t-2xl">
+        <h3 className="font-bold text-white text-lg">{title}</h3>
+        <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded-full transition-colors">
+          <X size={20} className="text-slate-400"/>
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {children}
+      </div>
     </div>
+  </div>
 );
 
 const TimerBar = ({ duration, onReset, onClose, settings }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(true);
+  const vibrationEnabled = settings?.vibration ?? true;
 
   useEffect(() => {
     let interval;
     if (isRunning && timeLeft > 0) interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
     else if (timeLeft === 0) {
         setIsRunning(false);
-        if(settings?.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        // Simple beep logic would go here if sound enabled
+        if(vibrationEnabled && navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, settings]);
+  }, [isRunning, timeLeft, vibrationEnabled]);
 
   const progress = ((duration - timeLeft) / duration) * 100;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 bg-slate-800 border border-slate-600 rounded-md shadow-2xl p-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-5">
+    <div className="fixed bottom-20 left-4 right-4 max-w-lg mx-auto bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-3 flex items-center gap-4 z-40 animate-in slide-in-from-bottom-5">
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-baseline">
           <span className="text-xs font-mono text-slate-400 uppercase">Repos</span>
@@ -211,49 +388,32 @@ const SetRow = ({ setNumber, previousData, currentData, onChange, onValidate }) 
     onValidate({ weight, reps, rpe, isValidated: newVal });
   };
 
-  const handleBlur = () => {
-    if (!isValidated) onChange({ weight, reps, rpe, isValidated: false });
-  };
-
   return (
     <div className={`grid grid-cols-10 gap-2 items-center py-2 border-b border-slate-800/50 ${isValidated ? 'opacity-50' : 'opacity-100'}`}>
       <div className="col-span-1 flex justify-center">
         <span className="font-mono text-slate-500 text-sm">{setNumber}</span>
       </div>
       <div className="col-span-2 text-center text-xs text-slate-600 font-mono hidden sm:block">
-        {previousData ? `${previousData.weight}kg x ${previousData.reps}` : '-'}
+        {previousData ? `${previousData.weight}kg` : '-'}
       </div>
       <div className="col-span-3 sm:col-span-2">
         <input 
-          type="number" 
-          placeholder="kg"
-          value={weight}
-          disabled={isValidated}
+          type="number" placeholder="kg" value={weight} disabled={isValidated}
           onChange={(e) => setWeight(e.target.value)}
-          onBlur={handleBlur}
           className="w-full bg-slate-800 border border-slate-700 rounded text-center text-slate-100 font-mono py-1 focus:border-cyan-500 focus:outline-none"
         />
       </div>
       <div className="col-span-3 sm:col-span-2">
         <input 
-          type="number" 
-          placeholder="reps"
-          value={reps}
-          disabled={isValidated}
+          type="number" placeholder="reps" value={reps} disabled={isValidated}
           onChange={(e) => setReps(e.target.value)}
-          onBlur={handleBlur}
           className="w-full bg-slate-800 border border-slate-700 rounded text-center text-slate-100 font-mono py-1 focus:border-cyan-500 focus:outline-none"
         />
       </div>
       <div className="col-span-2 hidden sm:block">
          <input 
-          type="number" 
-          placeholder="RPE"
-          max="10"
-          value={rpe}
-          disabled={isValidated}
+          type="number" placeholder="RPE" max="10" value={rpe} disabled={isValidated}
           onChange={(e) => setRpe(e.target.value)}
-          onBlur={handleBlur}
           className="w-full bg-slate-800 border border-slate-700 rounded text-center text-slate-400 font-mono py-1 focus:border-yellow-500 focus:outline-none text-xs"
         />
       </div>
@@ -269,152 +429,116 @@ const SetRow = ({ setNumber, previousData, currentData, onChange, onValidate }) 
   );
 };
 
-const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTimer, notes, onSaveNotes }) => {
+const ExerciseModule = ({ exercise, history, logs, onUpdateLog, onStartTimer, notes, onSaveNotes }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false); // NEW: Tutorial Toggle
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showChart, setShowChart] = useState(false);
   const [localNote, setLocalNote] = useState(notes || '');
 
   useEffect(() => { setLocalNote(notes || ''); }, [notes]);
 
-  const handleSaveNote = () => {
-      onSaveNotes(exercise.id, localNote);
-      setShowNotes(false);
-  };
+  const handleSaveNote = () => { onSaveNotes(exercise.id, localNote); setShowNotes(false); };
   
-  const getBestSet = () => {
-    if (!history) return null;
-    let best1RM = 0;
-    Object.values(history).forEach(set => {
-        const w = parseFloat(set.weight);
-        const r = parseFloat(set.reps);
-        if(w && r) {
-            const e1rm = w * (1 + r/30);
-            if(e1rm > best1RM) best1RM = e1rm;
-        }
-    });
-    return best1RM > 0 ? Math.round(best1RM) : null;
-  };
-  const estimated1RM = getBestSet();
+  // 1RM Calc
+  const estimated1RM = useMemo(() => {
+      if (!history) return null;
+      let best = 0;
+      Object.values(history).forEach(set => {
+          const w = parseFloat(set.weight);
+          const r = parseFloat(set.reps);
+          if(w && r) { const e = w * (1 + r/30); if(e > best) best = e; }
+      });
+      return best > 0 ? Math.round(best) : null;
+  }, [history]);
 
-  const currentVolume = todaysLog 
-    ? Object.values(todaysLog).reduce((acc, set) => acc + (parseFloat(set.weight || 0) * parseFloat(set.reps || 0)), 0)
-    : 0;
+  const todaysLog = logs?.currentSession?.[exercise.id];
+  const currentVolume = todaysLog ? Object.values(todaysLog).reduce((acc, set) => acc + (parseFloat(set.weight||0) * parseFloat(set.reps||0)), 0) : 0;
 
   return (
-    <div className="mb-4 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+    <div className="mb-4 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden w-full shadow-sm">
       <div 
         className="p-4 flex justify-between items-center cursor-pointer bg-slate-900 hover:bg-slate-800/50 transition-colors border-b border-slate-800"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center gap-3">
-            <div className={`w-1 h-8 rounded-full ${currentVolume > 0 ? 'bg-cyan-500' : 'bg-slate-700'}`}></div>
-            <div>
-                <h3 className="font-bold text-slate-200 text-sm sm:text-base flex items-center gap-2">
-                    {exercise.name}
-                </h3>
-                <div className="flex gap-3 mt-1">
-                    <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
-                        <Dumbbell size={10}/> {exercise.sets} séries
-                    </span>
-                    {estimated1RM && (
-                        <span className="text-xs text-yellow-600 font-mono flex items-center gap-1">
-                           🔥 1RM: {estimated1RM}kg
-                        </span>
-                    )}
+        <div className="flex items-center gap-3 overflow-hidden">
+            <div className={`w-1 h-8 rounded-full flex-shrink-0 ${currentVolume > 0 ? 'bg-cyan-500' : 'bg-slate-700'}`}></div>
+            <div className="min-w-0">
+                <h3 className="font-bold text-slate-200 text-sm sm:text-base truncate">{exercise.name}</h3>
+                <div className="flex gap-3 mt-1 items-center text-xs text-slate-500 font-mono">
+                    <span className="flex items-center gap-1 flex-shrink-0"><Dumbbell size={10}/> {exercise.sets} séries</span>
+                    {estimated1RM && <span className="text-yellow-600 flex items-center gap-1 flex-shrink-0">🔥 1RM: {estimated1RM}kg</span>}
                 </div>
             </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
              <button 
                 onClick={(e) => { e.stopPropagation(); setShowTutorial(!showTutorial); }}
                 className={`p-2 rounded-full transition-colors ${showTutorial ? 'bg-blue-500/20 text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
              >
                 <Info size={18} />
              </button>
-             {notes && <div className="w-2 h-2 rounded-full bg-yellow-500" title="Notes présentes"></div>}
-             {currentVolume > 0 && <span className="text-xs font-mono text-cyan-500">{currentVolume} kg</span>}
-             {isExpanded ? <ChevronDown size={18} className="text-slate-500"/> : <ChevronRight size={18} className="text-slate-500"/>}
+             <button 
+                onClick={(e) => { e.stopPropagation(); setShowChart(!showChart); }}
+                className={`p-2 rounded-full transition-colors ${showChart ? 'bg-purple-500/20 text-purple-400' : 'text-slate-500 hover:text-slate-300'}`}
+             >
+                <TrendingUp size={18} />
+             </button>
+             <button 
+                onClick={(e) => { e.stopPropagation(); setShowNotes(!showNotes); }}
+                className={`p-2 rounded-full transition-colors ${showNotes || notes ? 'bg-yellow-500/20 text-yellow-500' : 'text-slate-500 hover:text-slate-300'}`}
+             >
+                <StickyNote size={18} />
+             </button>
+             {isExpanded ? <ChevronDown size={18} className="text-slate-500 ml-1"/> : <ChevronRight size={18} className="text-slate-500 ml-1"/>}
         </div>
       </div>
 
       {isExpanded && (
         <div className="p-2 bg-slate-950/30">
-            {/* NEW: Tutorial Section */}
+            {/* Tutorial Block */}
             {showTutorial && (
-                <div className="px-3 py-3 mb-3 bg-blue-900/10 border border-blue-500/20 rounded-lg animate-in slide-in-from-top-2">
-                    <div className="flex gap-3">
-                        <Info size={20} className="text-blue-500 flex-shrink-0 mt-1"/>
-                        <div>
-                            <p className="text-sm text-blue-100 leading-relaxed mb-3">
-                                {exercise.tutorial || "Aucune consigne disponible."}
-                            </p>
-                            <a 
-                                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + " musculation technique")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors"
-                            >
-                                <Youtube size={14} /> Voir démo vidéo
-                            </a>
-                        </div>
-                    </div>
+                <div className="p-3 mb-2 bg-blue-900/10 border border-blue-500/20 rounded-lg animate-in slide-in-from-top-2">
+                    <p className="text-sm text-blue-100 mb-2">{exercise.tutorial}</p>
+                    <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + " musculation")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-300">
+                        <Youtube size={14} /> Voir vidéo
+                    </a>
                 </div>
             )}
 
-            {/* Toolbar */}
-            <div className="flex justify-end px-2 mb-2">
-                <button 
-                    onClick={() => setShowNotes(!showNotes)}
-                    className={`text-xs flex items-center gap-1 px-2 py-1 rounded transition-colors ${showNotes || notes ? 'text-yellow-500 bg-yellow-500/10' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                    <StickyNote size={12}/> {notes ? 'Modifier Notes' : 'Ajouter Notes'}
-                </button>
-            </div>
-
-            {/* Notes Area */}
+            {/* Notes Block */}
             {showNotes && (
-                <div className="px-2 mb-4 animate-in slide-in-from-top-2">
+                <div className="p-3 mb-2 bg-yellow-900/10 border border-yellow-700/30 rounded-lg animate-in slide-in-from-top-2">
                     <textarea 
                         value={localNote}
                         onChange={(e) => setLocalNote(e.target.value)}
-                        placeholder="Réglages siège, sensations, douleur..."
-                        className="w-full bg-yellow-900/10 border border-yellow-700/30 text-yellow-100 text-xs p-2 rounded focus:outline-none focus:border-yellow-600 h-20"
+                        placeholder="Notes persos..."
+                        className="w-full bg-transparent text-yellow-100 text-sm p-0 focus:outline-none min-h-[60px] placeholder:text-yellow-500/30"
                     />
-                    <div className="flex justify-end gap-2 mt-2">
-                        <button onClick={() => setShowNotes(false)} className="text-xs text-slate-500 hover:text-white px-3 py-1">Annuler</button>
+                    <div className="flex justify-end mt-2">
                         <button onClick={handleSaveNote} className="text-xs bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-1 rounded font-bold">Enregistrer</button>
                     </div>
                 </div>
             )}
-            
-            {!showNotes && notes && (
-                <div className="px-2 mb-4">
-                    <div className="bg-yellow-900/10 border-l-2 border-yellow-600 p-2 text-xs text-yellow-200/80 italic">
-                        {notes}
-                    </div>
-                </div>
-            )}
+
+            {/* Chart Block Placeholder */}
+            {showChart && <div className="p-3 mb-2 bg-purple-900/10 border border-purple-500/20 rounded-lg text-center text-xs text-purple-300 animate-in slide-in-from-top-2">Graphique de progression (nécessite plus de données)</div>}
 
             <div className="grid grid-cols-10 gap-2 mb-2 px-1">
                 <div className="col-span-1 text-center text-[10px] text-slate-500 uppercase font-bold">Set</div>
-                <div className="col-span-2 text-center text-[10px] text-slate-500 uppercase font-bold hidden sm:block">Précédent</div>
+                <div className="col-span-2 text-center text-[10px] text-slate-500 uppercase font-bold hidden sm:block">Préc.</div>
                 <div className="col-span-3 sm:col-span-2 text-center text-[10px] text-slate-500 uppercase font-bold">kg</div>
                 <div className="col-span-3 sm:col-span-2 text-center text-[10px] text-slate-500 uppercase font-bold">Reps</div>
                 <div className="col-span-2 text-center text-[10px] text-slate-500 uppercase font-bold hidden sm:block">RPE</div>
-                <div className="col-span-3 sm:col-span-1 text-center text-[10px] text-slate-500 uppercase font-bold">Valider</div>
+                <div className="col-span-3 sm:col-span-1 text-center text-[10px] text-slate-500 uppercase font-bold">OK</div>
             </div>
             {Array.from({ length: exercise.sets }).map((_, i) => (
                 <SetRow 
-                    key={i}
-                    setNumber={i + 1}
+                    key={i} setNumber={i + 1}
                     previousData={history ? history[i + 1] : null}
                     currentData={todaysLog ? todaysLog[i + 1] : null}
                     onChange={(data) => onUpdateLog(exercise.id, i + 1, data)}
-                    onValidate={(data) => {
-                        onUpdateLog(exercise.id, i + 1, data);
-                        if (data.isValidated) onStartTimer(exercise.rest);
-                    }}
+                    onValidate={(data) => { onUpdateLog(exercise.id, i + 1, data); if (data.isValidated) onStartTimer(exercise.rest); }}
                 />
             ))}
         </div>
@@ -423,382 +547,291 @@ const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTime
   );
 };
 
-const Dashboard = ({ logs, profile, habits, onUpdateProfile, onUpdateHabit }) => {
-    const chartData = useMemo(() => {
-        const volumeByDate = {};
-        Object.entries(logs).forEach(([key, sessionData]) => {
-            const date = key.split('T')[0];
-            let vol = 0;
-            Object.values(sessionData).forEach(exo => {
-                Object.values(exo).forEach(set => {
-                    if(set.isValidated) vol += (parseFloat(set.weight)||0) * (parseFloat(set.reps)||0);
-                });
-            });
-            if(volumeByDate[date]) volumeByDate[date] += vol;
-            else volumeByDate[date] = vol;
-        });
-        return Object.entries(volumeByDate)
-            .sort((a,b) => new Date(a[0]) - new Date(b[0]))
-            .slice(-7)
-            .map(([date, vol]) => ({ date, vol }));
-    }, [logs]);
+// NEW: Metronome Component
+const MetronomeTool = () => {
+    const [bpm, setBpm] = useState(60);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioCtx = useRef(null);
+    const nextNoteTime = useRef(0.0);
+    const timerID = useRef(null);
 
-    const bmi = calculateBMI(profile.weight, profile.height);
-    const today = new Date().toISOString().split('T')[0];
-    const todayHabits = habits[today] || {};
+    const scheduleNote = (time) => {
+        const osc = audioCtx.current.createOscillator();
+        const envelope = audioCtx.current.createGain();
+        osc.frequency.value = 1000;
+        envelope.gain.value = 1;
+        envelope.gain.exponentialRampToValueAtTime(1, time + 0.001);
+        envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.02);
+        osc.connect(envelope);
+        envelope.connect(audioCtx.current.destination);
+        osc.start(time);
+        osc.stop(time + 0.03);
+    };
 
-    const habitList = [
-      { id: 'protein', icon: Utensils, label: 'Protéines OK' },
-      { id: 'water', icon: Droplet, label: '2L Eau' },
-      { id: 'sleep', icon: Moon, label: '8h Sommeil' },
-      { id: 'creatine', icon: Activity, label: 'Créatine' },
-    ];
+    const scheduler = () => {
+        while (nextNoteTime.current < audioCtx.current.currentTime + 0.1) {
+            scheduleNote(nextNoteTime.current);
+            nextNoteTime.current += 60.0 / bpm;
+        }
+        timerID.current = window.setTimeout(scheduler, 25.0);
+    };
+
+    const toggle = () => {
+        if (isPlaying) {
+            window.clearTimeout(timerID.current);
+            setIsPlaying(false);
+        } else {
+            if (!audioCtx.current) audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
+            nextNoteTime.current = audioCtx.current.currentTime + 0.05;
+            setIsPlaying(true);
+            scheduler();
+        }
+    };
+
+    useEffect(() => { return () => window.clearTimeout(timerID.current); }, []);
 
     return (
-        <div className="p-4 space-y-6 animate-in fade-in">
-            {/* Header Metrics */}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                    <div className="flex items-center gap-2 text-slate-400 mb-2">
-                        <Activity size={16} />
-                        <span className="text-xs font-bold uppercase">Volume (7j)</span>
-                    </div>
-                    <span className="text-2xl font-mono font-bold text-white">
-                        {(chartData.reduce((acc, curr) => acc + curr.vol, 0) / 1000).toFixed(1)}k <span className="text-sm text-slate-500">kg</span>
-                    </span>
-                </div>
-                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                    <div className="flex items-center gap-2 text-slate-400 mb-2">
-                        <Calendar size={16} />
-                        <span className="text-xs font-bold uppercase">Séances</span>
-                    </div>
-                    <span className="text-2xl font-mono font-bold text-white">
-                        {chartData.length}
-                    </span>
-                </div>
-            </div>
+        <div className="text-center space-y-6">
+            <div className="text-6xl font-black text-white tabular-nums">{bpm} <span className="text-lg font-normal text-slate-500">BPM</span></div>
+            <input type="range" min="30" max="120" value={bpm} onChange={e => setBpm(Number(e.target.value))} className="w-full accent-cyan-500 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"/>
+            <button onClick={toggle} className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 mx-auto ${isPlaying ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+                {isPlaying ? <Pause size={32}/> : <Play size={32} className="ml-1"/>}
+            </button>
+            <p className="text-xs text-slate-500">Idéal pour contrôler le tempo (ex: 3s descente)</p>
+        </div>
+    );
+};
 
-            {/* Body Metrics Card */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                <div className="p-3 bg-slate-900 border-b border-slate-700 flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <User size={16} className="text-cyan-500"/> Suivi Corporel
-                    </h3>
-                    <div className={`text-xs px-2 py-0.5 rounded font-bold ${bmi.color} bg-slate-900`}>
-                        IMC: {bmi.value} ({bmi.label})
-                    </div>
-                </div>
-                <div className="p-4 grid grid-cols-2 gap-6">
-                    <div>
-                         <label className="text-xs text-slate-500 font-bold uppercase block mb-1">Poids (kg)</label>
-                         <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-3 py-2">
-                            <Scale size={16} className="text-slate-500 mr-2"/>
-                            <input 
-                                type="number" 
-                                value={profile.weight || ''}
-                                onChange={(e) => onUpdateProfile('weight', e.target.value)}
-                                className="bg-transparent text-white font-mono font-bold w-full focus:outline-none"
-                                placeholder="00.0"
-                            />
-                         </div>
-                    </div>
-                    <div>
-                         <label className="text-xs text-slate-500 font-bold uppercase block mb-1">Taille (cm)</label>
-                         <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-3 py-2">
-                            <Ruler size={16} className="text-slate-500 mr-2"/>
-                            <input 
-                                type="number" 
-                                value={profile.height || ''}
-                                onChange={(e) => onUpdateProfile('height', e.target.value)}
-                                className="bg-transparent text-white font-mono font-bold w-full focus:outline-none"
-                                placeholder="175"
-                            />
-                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Daily Habits Tracker */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                <div className="p-3 bg-slate-900 border-b border-slate-700">
-                    <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <Check size={16} className="text-green-500"/> Habitudes du Jour
-                    </h3>
-                </div>
-                <div className="p-2 grid grid-cols-2 gap-2">
-                    {habitList.map(habit => (
-                        <button
-                            key={habit.id}
-                            onClick={() => onUpdateHabit(today, habit.id)}
-                            className={`flex items-center gap-3 p-3 rounded-md border transition-all ${todayHabits[habit.id] ? 'bg-green-500/10 border-green-500/50 text-green-400' : 'bg-slate-900 border-slate-700 text-slate-500 hover:bg-slate-700'}`}
-                        >
-                            <div className={`p-1.5 rounded-full ${todayHabits[habit.id] ? 'bg-green-500 text-slate-900' : 'bg-slate-800'}`}>
-                                <habit.icon size={14}/>
-                            </div>
-                            <span className="text-xs font-bold">{habit.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Charts */}
-            <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                <h3 className="text-xs font-bold uppercase text-slate-400 mb-4">Progression Volume</h3>
-                <div className="flex items-end gap-2 h-32 w-full px-2">
-                    {chartData.length === 0 && <div className="text-slate-500 text-xs w-full text-center self-center">Pas assez de données</div>}
-                    {chartData.map((d, i) => {
-                        const max = Math.max(...chartData.map(o => o.vol));
-                        const h = (d.vol / max) * 100;
-                        return (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                                <div 
-                                    className="w-full bg-cyan-900 hover:bg-cyan-500 transition-all rounded-t-sm relative" 
-                                    style={{ height: `${h}%` }}
-                                ></div>
-                                <span className="text-[10px] text-slate-500 font-mono rotate-0">{formatDate(d.date)}</span>
-                            </div>
-                        )
-                    })}
-                </div>
+const StopwatchTool = () => {
+    const [time, setTime] = useState(0);
+    const [running, setRunning] = useState(false);
+    useEffect(() => {
+        let interval;
+        if(running) interval = setInterval(() => setTime(t => t + 10), 10);
+        else clearInterval(interval);
+        return () => clearInterval(interval);
+    }, [running]);
+    const format = (t) => {
+        const m = Math.floor(t / 60000);
+        const s = Math.floor((t % 60000) / 1000);
+        const ms = Math.floor((t % 1000) / 10);
+        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`;
+    };
+    return (
+        <div className="space-y-6 text-center">
+            <div className="text-6xl font-mono font-black text-white tabular-nums tracking-tighter">{format(time)}</div>
+            <div className="flex justify-center gap-4">
+                <button onClick={() => setRunning(!running)} className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 ${running ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+                    {running ? <Pause size={32}/> : <Play size={32} className="ml-1"/>}
+                </button>
+                <button onClick={() => {setRunning(false); setTime(0);}} className="w-20 h-20 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center shadow-lg transition-all active:scale-95 hover:bg-slate-600">
+                    <Clock size={28}/>
+                </button>
             </div>
         </div>
     );
 };
 
-const ToolsPage = ({ logs }) => {
+const MacroTool = ({ profile }) => {
+    const [weight, setWeight] = useState(profile?.weight || '');
+    const [height, setHeight] = useState(profile?.height || '');
+    const [age, setAge] = useState(profile?.age || '');
+    const [gender, setGender] = useState('male');
+    const [activity, setActivity] = useState(1.375);
+    const [goal, setGoal] = useState(0); // -500, 0, +500
+    const [result, setResult] = useState(null);
+
+    const calculate = () => {
+        if(!weight || !height || !age) return;
+        let bmr = 10 * weight + 6.25 * height - 5 * age;
+        bmr += gender === 'male' ? 5 : -161;
+        const tdee = Math.round(bmr * activity);
+        const target = tdee + goal;
+        setResult({
+            cals: target,
+            protein: Math.round(weight * 2), // 2g/kg
+            fat: Math.round((target * 0.25) / 9), // 25%
+            carbs: Math.round((target - (weight*2*4) - (target*0.25)) / 4)
+        });
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1"><label className="text-xs font-bold text-slate-500">Poids (kg)</label><input type="number" value={weight} onChange={e=>setWeight(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"/></div>
+                <div className="space-y-1"><label className="text-xs font-bold text-slate-500">Taille (cm)</label><input type="number" value={height} onChange={e=>setHeight(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"/></div>
+                <div className="space-y-1"><label className="text-xs font-bold text-slate-500">Age</label><input type="number" value={age} onChange={e=>setAge(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"/></div>
+                <div className="space-y-1"><label className="text-xs font-bold text-slate-500">Genre</label><select value={gender} onChange={e=>setGender(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"><option value="male">Homme</option><option value="female">Femme</option></select></div>
+                <div className="space-y-1 col-span-2"><label className="text-xs font-bold text-slate-500">Activité</label><select value={activity} onChange={e=>setActivity(Number(e.target.value))} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"><option value={1.2}>Sédentaire (Bureau)</option><option value={1.375}>Léger (1-3j sport)</option><option value={1.55}>Modéré (3-5j sport)</option><option value={1.725}>Intense (6-7j sport)</option></select></div>
+                <div className="space-y-1 col-span-2"><label className="text-xs font-bold text-slate-500">Objectif</label><div className="flex bg-slate-950 rounded p-1 border border-slate-700"><button onClick={()=>setGoal(-500)} className={`flex-1 py-1 rounded text-xs font-bold ${goal===-500?'bg-red-600 text-white':'text-slate-400'}`}>Sèche</button><button onClick={()=>setGoal(0)} className={`flex-1 py-1 rounded text-xs font-bold ${goal===0?'bg-blue-600 text-white':'text-slate-400'}`}>Maintien</button><button onClick={()=>setGoal(500)} className={`flex-1 py-1 rounded text-xs font-bold ${goal===500?'bg-green-600 text-white':'text-slate-400'}`}>Masse</button></div></div>
+            </div>
+            <button onClick={calculate} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg">Calculer</button>
+            {result && (
+                <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 grid grid-cols-4 gap-2 text-center">
+                    <div className="col-span-4 mb-2"><span className="text-3xl font-black text-white">{result.cals}</span> <span className="text-xs text-slate-400">kcal/jour</span></div>
+                    <div className="bg-slate-900 p-2 rounded border border-slate-700"><div className="text-xs text-blue-400 font-bold">Prot</div><div className="font-bold text-white">{result.protein}g</div></div>
+                    <div className="bg-slate-900 p-2 rounded border border-slate-700"><div className="text-xs text-yellow-400 font-bold">Gluc</div><div className="font-bold text-white">{result.carbs}g</div></div>
+                    <div className="bg-slate-900 p-2 rounded border border-slate-700"><div className="text-xs text-red-400 font-bold">Lip</div><div className="font-bold text-white">{result.fat}g</div></div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const BodyFatTool = ({ profile }) => {
+    const [waist, setWaist] = useState('');
+    const [neck, setNeck] = useState('');
+    const [height, setHeight] = useState(profile?.height || '');
+    const [bf, setBf] = useState(null);
+
+    const calculate = () => {
+        if(!waist || !neck || !height) return;
+        const w = parseFloat(waist);
+        const n = parseFloat(neck);
+        const h = parseFloat(height);
+        const res = 86.010 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
+        setBf(res.toFixed(1));
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <div><label className="text-xs font-bold text-slate-500">Taille (cm)</label><input type="number" value={height} onChange={e=>setHeight(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white"/></div>
+                <div><label className="text-xs font-bold text-slate-500">Tour de cou (cm)</label><input type="number" value={neck} onChange={e=>setNeck(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white"/></div>
+                <div><label className="text-xs font-bold text-slate-500">Tour de taille (nombril) (cm)</label><input type="number" value={waist} onChange={e=>setWaist(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white"/></div>
+            </div>
+            <button onClick={calculate} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg">Calculer IMG</button>
+            {bf && (
+                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center">
+                    <span className="text-4xl font-black text-white">{bf}%</span>
+                    <p className="text-xs text-slate-400 mt-2">Indice Masse Grasse (Navy Method)</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const ToolsPage = ({ profile }) => {
+    const [activeTool, setActiveTool] = useState(null);
     const [targetWeight, setTargetWeight] = useState('');
-    const [barWeight, setBarWeight] = useState(20);
     const [plates, setPlates] = useState([]);
     const [oneRmWeight, setOneRmWeight] = useState('');
     const [oneRmReps, setOneRmReps] = useState('');
-    const [calculatedMax, setCalculatedMax] = useState(null);
+    const [max, setMax] = useState(null);
 
-    const calculatePlates = () => {
-        if (!targetWeight || targetWeight < barWeight) {
-            setPlates([]);
-            return;
-        }
-        let remaining = (targetWeight - barWeight) / 2;
-        const availablePlates = [20, 10, 5, 2.5, 1.25];
-        const result = [];
-        availablePlates.forEach(plate => {
-            while (remaining >= plate) {
-                result.push(plate);
-                remaining -= plate;
-            }
-        });
-        setPlates(result);
-    };
-
-    useEffect(() => { calculatePlates(); }, [targetWeight, barWeight]);
-
+    // Plate logic
     useEffect(() => {
-        if(oneRmWeight && oneRmReps) {
-            const w = parseFloat(oneRmWeight);
-            const r = parseFloat(oneRmReps);
-            const res = w * (1 + r/30);
-            setCalculatedMax(Math.round(res));
-        } else {
-            setCalculatedMax(null);
-        }
+        if (!targetWeight || targetWeight < 20) { setPlates([]); return; }
+        let remaining = (targetWeight - 20) / 2;
+        const res = [];
+        [20, 10, 5, 2.5, 1.25].forEach(p => {
+            while (remaining >= p) { res.push(p); remaining -= p; }
+        });
+        setPlates(res);
+    }, [targetWeight]);
+
+    // 1RM logic
+    useEffect(() => {
+        if(oneRmWeight && oneRmReps) setMax(Math.round(oneRmWeight * (1 + oneRmReps/30)));
+        else setMax(null);
     }, [oneRmWeight, oneRmReps]);
 
-    const handleExport = () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href",     dataStr);
-        downloadAnchorNode.setAttribute("download", "rehabpro_export_" + new Date().toISOString() + ".json");
-        document.body.appendChild(downloadAnchorNode); 
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    };
+    const ToolButton = ({ icon: Icon, title, sub, color, onClick }) => (
+        <button onClick={onClick} className="w-full bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between hover:bg-slate-700 transition group">
+            <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl bg-${color}-500/10 text-${color}-500 group-hover:scale-110 transition-transform`}>
+                    <Icon size={24}/>
+                </div>
+                <div className="text-left">
+                    <h3 className="font-bold text-slate-100">{title}</h3>
+                    <p className="text-xs text-slate-500">{sub}</p>
+                </div>
+            </div>
+            <ChevronRight size={20} className="text-slate-600"/>
+        </button>
+    );
 
     return (
-        <div className="p-4 space-y-8 animate-in slide-in-from-right-10">
-            <h2 className="text-xl font-bold text-white mb-6">Boîte à Outils Pro</h2>
+        <div className="p-4 space-y-4 animate-in slide-in-from-right-10 pb-24">
+            <h2 className="text-xl font-bold text-white mb-6">Boîte à Outils</h2>
             
-            <section className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                <div className="p-3 bg-slate-900 border-b border-slate-700 flex items-center gap-2">
-                     <Disc size={18} className="text-cyan-500" />
-                     <h3 className="font-bold text-sm text-slate-200">Calculateur de Charge</h3>
-                </div>
-                <div className="p-4 space-y-4">
-                     <div className="grid grid-cols-2 gap-4">
-                         <div>
-                             <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Poids total (kg)</label>
-                             <input 
-                                type="number" 
-                                value={targetWeight}
-                                onChange={e => setTargetWeight(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-mono font-bold"
-                                placeholder="Ex: 80"
-                             />
-                         </div>
-                         <div>
-                             <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Barre (kg)</label>
-                             <select 
-                                value={barWeight}
-                                onChange={e => setBarWeight(Number(e.target.value))}
-                                className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-mono"
-                             >
-                                 <option value={20}>Olympique (20kg)</option>
-                                 <option value={15}>Femme (15kg)</option>
-                                 <option value={10}>EZ / Technique (10kg)</option>
-                             </select>
-                         </div>
-                     </div>
-                     <div className="bg-slate-900 h-24 rounded-lg flex items-center justify-center relative overflow-hidden px-4">
-                         <div className="absolute w-full h-2 bg-slate-600 z-0"></div>
-                         <div className="flex items-center gap-1 z-10">
-                            {plates.length === 0 && <span className="text-slate-600 text-xs">Entrez un poids</span>}
-                            {plates.map((p, i) => {
-                                let h = 'h-16'; let color = 'bg-red-600'; 
-                                if(p === 20) { h = 'h-16'; color = 'bg-blue-600'; }
-                                if(p === 15) { h = 'h-14'; color = 'bg-yellow-500'; }
-                                if(p === 10) { h = 'h-12'; color = 'bg-green-600'; }
-                                if(p === 5) { h = 'h-10'; color = 'bg-white'; }
-                                if(p === 2.5) { h = 'h-8'; color = 'bg-slate-400'; }
-                                if(p === 1.25) { h = 'h-6'; color = 'bg-slate-500'; }
-                                return (<div key={i} className={`w-3 ${h} ${color} rounded-sm border border-black/20 shadow-sm`} title={`${p}kg`}></div>)
-                            })}
-                         </div>
-                         {plates.length > 0 && (
-                             <div className="absolute bottom-1 right-2 text-xs font-mono text-slate-400">
-                                 {plates.join('+')} <span className="text-slate-600">x2</span>
-                             </div>
-                         )}
-                     </div>
-                </div>
-            </section>
+            <ToolButton icon={Disc} color="blue" title="Calculateur de Disques" sub="Chargement de barre" onClick={() => setActiveTool('plates')} />
+            <ToolButton icon={Activity} color="purple" title="Calculateur 1RM" sub="Estimation force max" onClick={() => setActiveTool('1rm')} />
+            <ToolButton icon={TimerIcon} color="green" title="Chronomètre Libre" sub="Gainage, repos, étirements" onClick={() => setActiveTool('stopwatch')} />
+            <ToolButton icon={Music} color="pink" title="Métronome" sub="Contrôle du tempo" onClick={() => setActiveTool('metronome')} />
+            <ToolButton icon={Utensils} color="orange" title="Calories & Macros" sub="Besoins nutritionnels" onClick={() => setActiveTool('macros')} />
+            <ToolButton icon={PieChart} color="red" title="Indice Masse Grasse" sub="Estimation via mensurations" onClick={() => setActiveTool('bodyfat')} />
 
-            <section className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                <div className="p-3 bg-slate-900 border-b border-slate-700 flex items-center gap-2">
-                     <Activity size={18} className="text-purple-500" />
-                     <h3 className="font-bold text-sm text-slate-200">Calculateur 1RM (Epley)</h3>
-                </div>
-                <div className="p-4 grid grid-cols-2 gap-4">
-                     <div>
-                         <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Poids levé</label>
-                         <input 
-                            type="number" 
-                            value={oneRmWeight}
-                            onChange={e => setOneRmWeight(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-mono font-bold"
-                            placeholder="kg"
-                         />
-                     </div>
-                     <div>
-                         <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Répétitions</label>
-                         <input 
-                            type="number" 
-                            value={oneRmReps}
-                            onChange={e => setOneRmReps(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-mono font-bold"
-                            placeholder="reps"
-                         />
-                     </div>
-                </div>
-                {calculatedMax && (
-                    <div className="bg-purple-900/20 p-4 border-t border-purple-500/30 flex justify-between items-center">
-                        <span className="text-sm text-purple-200">Max Théorique :</span>
-                        <span className="text-2xl font-black text-white">{calculatedMax} <span className="text-sm font-normal text-slate-400">kg</span></span>
+            {/* Modals */}
+            {activeTool === 'plates' && (
+                <Modal title="Calculateur de Charge" onClose={() => setActiveTool(null)}>
+                    <div className="space-y-6">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Poids Total (kg)</label>
+                            <input type="number" value={targetWeight} onChange={e => setTargetWeight(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white font-bold text-center text-xl focus:outline-none focus:border-blue-500" placeholder="ex: 80"/>
+                        </div>
+                        <div className="bg-slate-800 p-4 rounded-lg flex items-center justify-center gap-1 min-h-[80px]">
+                            <div className="w-full h-2 bg-slate-600 absolute z-0 max-w-[300px]"></div>
+                            {plates.length > 0 ? plates.map((p, i) => (
+                                <div key={i} className={`z-10 h-${p >= 20 ? 16 : p >= 10 ? 12 : 8} w-4 rounded-sm border border-black/20 shadow-md ${p===20?'bg-blue-600':p===10?'bg-green-600':p===5?'bg-white':'bg-yellow-500'}`} title={`${p}kg`}></div>
+                            )) : <span className="z-10 text-xs text-slate-500 bg-slate-800 px-2">Entrez un poids</span>}
+                        </div>
+                        {plates.length > 0 && <p className="text-center text-sm text-slate-400">Par côté : {plates.join(' + ')}</p>}
                     </div>
-                )}
-            </section>
+                </Modal>
+            )}
 
-            <section className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                <div className="p-3 bg-slate-900 border-b border-slate-700 flex items-center gap-2">
-                     <Share2 size={18} className="text-green-500" />
-                     <h3 className="font-bold text-sm text-slate-200">Export Données</h3>
-                </div>
-                <div className="p-4">
-                    <button 
-                        onClick={handleExport}
-                        className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded border border-slate-500 flex justify-center items-center gap-2 text-sm font-bold transition"
-                    >
-                        <Download size={16}/> Télécharger JSON
-                    </button>
-                </div>
-            </section>
+            {activeTool === '1rm' && (
+                <Modal title="Calculateur 1RM" onClose={() => setActiveTool(null)}>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div><label className="text-xs font-bold text-slate-500 block mb-1">Poids (kg)</label><input type="number" value={oneRmWeight} onChange={e=>setOneRmWeight(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white"/></div>
+                            <div><label className="text-xs font-bold text-slate-500 block mb-1">Reps</label><input type="number" value={oneRmReps} onChange={e=>setOneRmReps(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white"/></div>
+                        </div>
+                        {max && <div className="bg-purple-500/20 border border-purple-500/50 p-6 rounded-xl text-center"><span className="text-3xl font-black text-white">{max} kg</span><p className="text-xs text-purple-300 uppercase mt-1">Max Théorique</p></div>}
+                    </div>
+                </Modal>
+            )}
+
+            {activeTool === 'stopwatch' && <Modal title="Chronomètre" onClose={() => setActiveTool(null)}><StopwatchTool/></Modal>}
+            {activeTool === 'metronome' && <Modal title="Métronome" onClose={() => setActiveTool(null)}><MetronomeTool/></Modal>}
+            {activeTool === 'macros' && <Modal title="Calculateur Macros" onClose={() => setActiveTool(null)}><MacroTool profile={profile}/></Modal>}
+            {activeTool === 'bodyfat' && <Modal title="Indice Masse Grasse" onClose={() => setActiveTool(null)}><BodyFatTool profile={profile}/></Modal>}
         </div>
     );
 };
 
-// NEW: Updated Settings Page with Import & Options
-const SettingsPage = ({ profile, settings, onUpdateProfile, onUpdateSettings, onResetData, onImportData }) => {
+// NEW: Daily Checkin Component
+const DailyCheckin = ({ todayLog, onUpdate }) => {
+    const [pain, setPain] = useState(todayLog?.pain || 0);
+    const [energy, setEnergy] = useState(todayLog?.energy || 5);
+    const [note, setNote] = useState(todayLog?.note || '');
+
+    const handleSave = () => {
+        onUpdate({ pain, energy, note });
+    };
+
     return (
-        <div className="p-4 space-y-6 animate-in slide-in-from-right-10">
-            <h2 className="text-xl font-bold text-white mb-6">Réglages</h2>
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
+            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><HeartPulse size={16} className="text-red-500"/> Bilan du Jour</h3>
             
-            <section className="space-y-4">
-                <h3 className="text-xs font-bold uppercase text-slate-500">Profil Utilisateur</h3>
-                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                    <div className="p-4 space-y-4">
-                        <div>
-                             <label className="text-xs text-slate-400 mb-1 block">Nom / Pseudo</label>
-                             <input 
-                                type="text"
-                                value={profile.name || ''}
-                                onChange={(e) => onUpdateProfile('name', e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-cyan-500 focus:outline-none"
-                             />
-                        </div>
-                    </div>
+            <div className="space-y-4">
+                <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-1"><span>Douleur Épaule</span> <span>{pain}/10</span></div>
+                    <input type="range" min="0" max="10" value={pain} onChange={e=>setPain(Number(e.target.value))} className="w-full accent-red-500 h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer"/>
                 </div>
-            </section>
-            
-            {/* NEW: App Preferences */}
-            <section className="space-y-4">
-                <h3 className="text-xs font-bold uppercase text-slate-500">Préférences</h3>
-                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                     <button 
-                        onClick={() => onUpdateSettings('sound', !settings.sound)}
-                        className="w-full p-4 border-b border-slate-700 flex justify-between items-center hover:bg-slate-700/50"
-                     >
-                        <div className="flex items-center gap-3">
-                            {settings.sound ? <Volume2 size={20} className="text-cyan-500"/> : <VolumeX size={20} className="text-slate-500"/>}
-                            <span className="text-sm font-medium text-slate-200">Sons (Timer)</span>
-                        </div>
-                        <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.sound ? 'bg-cyan-600' : 'bg-slate-600'}`}>
-                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.sound ? 'left-6' : 'left-1'}`}></div>
-                        </div>
-                     </button>
-                     <button 
-                        onClick={() => onUpdateSettings('vibration', !settings.vibration)}
-                        className="w-full p-4 border-b border-slate-700 flex justify-between items-center hover:bg-slate-700/50"
-                     >
-                        <div className="flex items-center gap-3">
-                            <Activity size={20} className={settings.vibration ? "text-cyan-500" : "text-slate-500"}/>
-                            <span className="text-sm font-medium text-slate-200">Vibrations</span>
-                        </div>
-                        <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.vibration ? 'bg-cyan-600' : 'bg-slate-600'}`}>
-                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.vibration ? 'left-6' : 'left-1'}`}></div>
-                        </div>
-                     </button>
+                <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-1"><span>Niveau d'Énergie</span> <span>{energy}/10</span></div>
+                    <input type="range" min="0" max="10" value={energy} onChange={e=>setEnergy(Number(e.target.value))} className="w-full accent-green-500 h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer"/>
                 </div>
-            </section>
-
-            <section className="space-y-4">
-                <h3 className="text-xs font-bold uppercase text-slate-500">Gestion des Données</h3>
-                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden p-4 space-y-4">
-                    <label className="flex items-center gap-3 w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white rounded border border-slate-500 justify-center cursor-pointer transition">
-                        <Upload size={16}/> Import Sauvegarde (JSON)
-                        <input type="file" accept=".json" onChange={onImportData} className="hidden" />
-                    </label>
-
-                    <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-4 mt-4">
-                        <p className="text-xs text-red-400 mb-4">
-                            Zone Danger : Suppression irréversible.
-                        </p>
-                        <button 
-                            onClick={onResetData}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-900/50 hover:bg-red-900 text-red-200 rounded border border-red-800 transition-colors text-sm font-bold"
-                        >
-                            <Trash2 size={16} /> Tout effacer
-                        </button>
-                    </div>
-                </div>
-            </section>
+                <textarea 
+                    value={note}
+                    onChange={e=>setNote(e.target.value)}
+                    placeholder="Comment vous sentez-vous aujourd'hui ?"
+                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white focus:outline-none min-h-[60px]"
+                />
+                <button onClick={handleSave} className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">Enregistrer</button>
+            </div>
         </div>
     );
 };
@@ -806,45 +839,84 @@ const SettingsPage = ({ profile, settings, onUpdateProfile, onUpdateSettings, on
 // --- MAIN APP ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('workout'); 
-  const [activeWeek, setActiveWeek] = useStickyState("A", "pro_active_week");
-  const [activeDay, setActiveDay] = useStickyState("Jour 1 (Push)", "pro_active_day");
-  
-  // États persistants
-  const [logs, setLogs] = useStickyState({}, "pro_workout_logs");
-  const [profile, setProfile] = useStickyState({ name: '', height: '', weight: '', age: '' }, "pro_user_profile");
-  const [habits, setHabits] = useStickyState({}, "pro_daily_habits");
-  const [notes, setNotes] = useStickyState({}, "pro_exercise_notes");
-  const [settings, setSettings] = useStickyState({ sound: true, vibration: true }, "pro_user_settings"); // NEW
-  
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('workout');
+  const [activeWeek, setActiveWeek] = useState("A");
+  const [activeDay, setActiveDay] = useState("Jour 1 (Push)");
+  const [userData, setUserData] = useState({ logs: {}, profile: {}, settings: { sound: true, vibration: true }, habits: {}, notes: {}, measurements: {}, dailyLogs: {} }); // Added dailyLogs
   const [timer, setTimer] = useState(null);
   const [showWarmUp, setShowWarmUp] = useState(false);
+  const [showRpeHelp, setShowRpeHelp] = useState(false);
+
+  useEffect(() => {
+    const initAuth = async () => { if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token); };
+    initAuth();
+    const unsubscribe = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main');
+    const unsub = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) setUserData(docSnap.data());
+      else { const initial = { logs: {}, profile: {}, settings: { sound: true }, habits: {}, notes: {}, measurements: {}, dailyLogs: {} }; setDoc(userDocRef, initial); setUserData(initial); }
+    });
+    return () => unsub();
+  }, [user]);
+
+  const saveToFire = async (key, value) => { if (!user) return; const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'); await updateDoc(userDocRef, { [key]: value }); };
 
   const today = new Date().toISOString().split('T')[0];
   const sessionKey = `${today}-${activeWeek}-${activeDay}`;
 
-  const getLastSessionData = (exerciseId) => {
-    const keys = Object.keys(logs).filter(k => k.includes(`${activeWeek}-${activeDay}`) && k !== sessionKey).sort().reverse();
-    if (keys.length > 0) return logs[keys[0]]?.[exerciseId];
-    return null;
-  };
-
   const handleUpdateLog = (exoId, setNum, data) => {
-    setLogs(prev => ({
-        ...prev,
-        [sessionKey]: { ...prev[sessionKey], [exoId]: { ...prev[sessionKey]?.[exoId], [setNum]: data } }
-    }));
+    const newLogs = { ...userData.logs };
+    if (!newLogs[sessionKey]) newLogs[sessionKey] = {};
+    if (!newLogs[sessionKey][exoId]) newLogs[sessionKey][exoId] = {};
+    newLogs[sessionKey][exoId][setNum] = data;
+    setUserData(prev => ({ ...prev, logs: newLogs }));
+    saveToFire('logs', newLogs);
   };
 
-  const handleUpdateProfile = (field, value) => setProfile(prev => ({ ...prev, [field]: value }));
-  const handleUpdateSettings = (field, value) => setSettings(prev => ({ ...prev, [field]: value }));
-  const handleUpdateHabit = (date, habitId) => setHabits(prev => ({ ...prev, [date]: { ...prev[date], [habitId]: !prev[date]?.[habitId] } }));
-  const handleSaveNotes = (exoId, note) => setNotes(prev => ({ ...prev, [exoId]: note }));
+  const handleUpdateProfile = (field, value) => {
+      const newProfile = { ...userData.profile, [field]: value };
+      setUserData(prev => ({ ...prev, profile: newProfile }));
+      saveToFire('profile', newProfile);
+  };
+
+  const handleUpdateHabit = (date, habitId) => {
+      const newHabits = { ...userData.habits };
+      if(!newHabits[date]) newHabits[date] = {};
+      newHabits[date][habitId] = !newHabits[date][habitId];
+      setUserData(prev => ({ ...prev, habits: newHabits }));
+      saveToFire('habits', newHabits);
+  };
+
+  const handleUpdateDailyLog = (data) => {
+      const newDaily = { ...userData.dailyLogs, [today]: data };
+      setUserData(prev => ({ ...prev, dailyLogs: newDaily }));
+      saveToFire('dailyLogs', newDaily);
+  };
+
+  const handleUpdateMeasurements = (part, value) => {
+      const newM = { ...userData.measurements, [part]: value };
+      setUserData(prev => ({...prev, measurements: newM}));
+      saveToFire('measurements', newM);
+  };
+
+  const handleUpdateSettings = (field, value) => {
+      const newS = { ...(userData.settings || {sound: true, vibration: true}), [field]: value };
+      setUserData(prev => ({...prev, settings: newS}));
+      saveToFire('settings', newS);
+  };
 
   const handleResetData = () => {
       if(window.confirm("Êtes-vous sûr de vouloir tout effacer ?")) {
-          localStorage.clear();
-          window.location.reload();
+          const empty = { logs: {}, profile: {}, settings: { sound: true }, habits: {}, notes: {}, measurements: {}, dailyLogs: {} };
+          setUserData(empty);
+          if(user) setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'), empty);
       }
   };
 
@@ -856,7 +928,8 @@ export default function App() {
           try {
               const importedData = JSON.parse(event.target.result);
               if (confirm("Remplacer les données actuelles par le fichier importé ?")) {
-                  setLogs(importedData);
+                  setUserData(importedData);
+                  if(user) setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'), importedData);
                   alert("Import réussi !");
               }
           } catch (error) {
@@ -866,47 +939,42 @@ export default function App() {
       reader.readAsText(file);
   };
 
+  const getLastSessionData = (exerciseId) => {
+    if (!userData.logs) return null;
+    const keys = Object.keys(userData.logs).filter(k => k.includes(`${activeWeek}-${activeDay}`) && k !== sessionKey).sort().reverse();
+    if (keys.length > 0) return userData.logs[keys[0]]?.[exerciseId];
+    return null;
+  };
+
   const currentExercises = ProgramData.weeks[activeWeek][activeDay];
 
+  if (authLoading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader className="text-cyan-500 animate-spin"/></div>;
+  if (!user) return <AuthScreen />;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans pb-24">
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans pb-24 overflow-x-hidden">
       
       {/* HEADER */}
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 w-full max-w-lg mx-auto shadow-md">
+        <div className="px-4 h-14 flex items-center justify-between">
            <div className="flex items-center gap-3">
-               <div className="flex items-center gap-2">
-                   <div className="w-6 h-6 bg-cyan-500 rounded flex items-center justify-center">
-                       <span className="font-bold text-slate-900 text-xs">R</span>
-                   </div>
-                   <span className="font-bold tracking-tight text-slate-100 hidden sm:inline">REHAB<span className="text-cyan-500">PRO</span></span>
+               <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                   <span className="font-black text-slate-900 text-sm">R</span>
                </div>
                <SessionTimer />
            </div>
-           
            {activeTab === 'workout' && (
-               <div className="flex gap-1 bg-slate-800 p-1 rounded border border-slate-700">
+               <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
                    {['A', 'B'].map(w => (
-                       <button 
-                         key={w} 
-                         onClick={() => setActiveWeek(w)}
-                         className={`text-xs font-mono px-3 py-1 rounded transition-colors ${activeWeek === w ? 'bg-cyan-500 text-slate-900 font-bold' : 'text-slate-400 hover:text-white'}`}
-                       >
-                           Sem {w}
-                       </button>
+                       <button key={w} onClick={() => setActiveWeek(w)} className={`text-xs font-bold px-3 py-1 rounded transition-all ${activeWeek === w ? 'bg-cyan-500 text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white'}`}>Sem {w}</button>
                    ))}
                </div>
            )}
         </div>
-        
         {activeTab === 'workout' && (
-            <div className="max-w-md mx-auto px-4 py-2 flex overflow-x-auto gap-2 no-scrollbar bg-slate-900/50 backdrop-blur-sm border-b border-slate-800">
+            <div className="px-4 py-2 flex overflow-x-auto gap-2 no-scrollbar bg-slate-900/95 backdrop-blur border-b border-slate-800">
                 {Object.keys(ProgramData.weeks[activeWeek]).map(day => (
-                    <button
-                        key={day}
-                        onClick={() => setActiveDay(day)}
-                        className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${activeDay === day ? 'bg-slate-100 text-slate-900 border-white' : 'bg-slate-900 text-slate-500 border-slate-700 hover:border-slate-500'}`}
-                    >
+                    <button key={day} onClick={() => setActiveDay(day)} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${activeDay === day ? 'bg-slate-100 text-slate-900 border-white' : 'bg-slate-800 text-slate-500 border-slate-700'}`}>
                         {day}
                     </button>
                 ))}
@@ -915,75 +983,116 @@ export default function App() {
       </header>
 
       {/* CONTENT */}
-      <main className="max-w-md mx-auto pt-4">
+      <main className="max-w-lg mx-auto pt-4 w-full px-4">
         
         {activeTab === 'dashboard' && (
-            <Dashboard 
-                logs={logs} 
-                profile={profile}
-                habits={habits}
-                onUpdateProfile={handleUpdateProfile}
-                onUpdateHabit={handleUpdateHabit}
-            />
+            <div className="animate-in fade-in space-y-6">
+                <DailyCheckin todayLog={userData.dailyLogs?.[today]} onUpdate={handleUpdateDailyLog} />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <div className="flex items-center gap-2 text-slate-400 mb-2"><Activity size={16}/><span className="text-xs font-bold uppercase">Sessions</span></div>
+                        <span className="text-2xl font-bold text-white">{Object.keys(userData.logs || {}).length}</span>
+                    </div>
+                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <div className="flex items-center gap-2 text-slate-400 mb-2"><Target size={16}/><span className="text-xs font-bold uppercase">Habitudes</span></div>
+                        <span className="text-2xl font-bold text-white text-green-400">OK</span>
+                    </div>
+                </div>
+                
+                {/* History List */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div className="p-4 border-b border-slate-700 flex items-center gap-2">
+                        <History size={18} className="text-blue-400"/>
+                        <h3 className="font-bold text-sm text-white">Dernières Séances</h3>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto">
+                        {Object.keys(userData.logs || {}).sort().reverse().slice(0, 5).map(key => (
+                            <div key={key} className="p-4 border-b border-slate-700/50 flex justify-between items-center last:border-0">
+                                <div>
+                                    <p className="text-xs text-slate-400">{new Date(key.split('-').slice(0,3).join('-')).toLocaleDateString()}</p>
+                                    <p className="text-sm font-bold text-white">{key.split('-').slice(4).join(' ')}</p>
+                                </div>
+                                <div className="bg-slate-700 px-2 py-1 rounded text-xs font-mono text-cyan-300">Complété</div>
+                            </div>
+                        ))}
+                        {Object.keys(userData.logs || {}).length === 0 && <div className="p-4 text-center text-xs text-slate-500">Aucune séance enregistrée.</div>}
+                    </div>
+                </div>
+
+                {/* Measurements */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
+                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Ruler size={16} className="text-cyan-500"/> Mensurations</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        {['Poids', 'Taille', 'Bras', 'Taille (cm)'].map(label => (
+                            <div key={label}>
+                                <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">{label}</label>
+                                <input 
+                                    type="number" 
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-sm focus:border-cyan-500 focus:outline-none" 
+                                    placeholder="-"
+                                    value={userData.measurements?.[label] || ''}
+                                    onChange={(e) => handleUpdateMeasurements(label, e.target.value)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Daily Habits */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div className="p-3 bg-slate-900 border-b border-slate-700">
+                        <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2"><Check size={16} className="text-green-500"/> Habitudes</h3>
+                    </div>
+                    <div className="p-2 grid grid-cols-2 gap-2">
+                        {[{ id: 'protein', label: 'Protéines' }, { id: 'water', label: '2L Eau' }, { id: 'sleep', label: '8h Sommeil' }, { id: 'creatine', label: 'Créatine' }].map(h => (
+                            <button key={h.id} onClick={() => handleUpdateHabit(today, h.id)} className={`flex items-center gap-3 p-3 rounded-md border transition-all ${userData.habits?.[today]?.[h.id] ? 'bg-green-500/10 border-green-500/50 text-green-400' : 'bg-slate-900 border-slate-700 text-slate-500'}`}>
+                                <span className="text-xs font-bold">{h.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
         )}
 
         {activeTab === 'workout' && (
-            <div className="px-4 animate-in fade-in duration-300">
-                <button 
-                    onClick={() => setShowWarmUp(true)}
-                    className="w-full mb-6 bg-gradient-to-r from-orange-900/40 to-slate-900 border border-orange-700/30 p-3 rounded-lg flex items-center justify-between group hover:border-orange-500/50 transition-all"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="bg-orange-500/20 p-2 rounded-full text-orange-500 group-hover:scale-110 transition-transform">
-                            <Flame size={18} fill="currentColor" />
-                        </div>
-                        <div className="text-left">
-                            <h3 className="font-bold text-sm text-orange-100">Routine Échauffement</h3>
-                            <p className="text-[10px] text-orange-300/60">Coiffe des rotateurs & Mobilité</p>
-                        </div>
-                    </div>
-                    <PlayCircle size={20} className="text-orange-500 opacity-50 group-hover:opacity-100"/>
-                </button>
-
-                <div className="flex justify-between items-end mb-4 px-1">
-                    <h2 className="text-xl font-bold text-white uppercase tracking-wider">{activeDay.split('(')[0]} <span className="text-cyan-500 text-sm normal-case tracking-normal">{activeDay.match(/\((.*)\)/)?.[0]}</span></h2>
-                    <span className="text-xs font-mono text-slate-500">{new Date().toLocaleDateString()}</span>
+            <div className="animate-in fade-in duration-300 pb-10">
+                <div className="flex gap-2 mb-6">
+                    <button onClick={() => setShowWarmUp(true)} className="flex-1 bg-gradient-to-r from-orange-900/20 to-slate-900 border border-orange-500/20 p-3 rounded-xl flex items-center justify-center gap-2 group hover:border-orange-500/40 transition-all">
+                        <Flame size={18} className="text-orange-500"/> <span className="text-xs font-bold text-orange-100">Échauffement</span>
+                    </button>
+                    <button onClick={() => setShowRpeHelp(true)} className="flex-none bg-slate-800 border border-slate-700 p-3 rounded-xl flex items-center justify-center hover:bg-slate-700 transition-all">
+                        <HelpCircle size={18} className="text-slate-400"/>
+                    </button>
                 </div>
 
-                {currentExercises.map(exo => (
-                    <ExerciseModule 
-                        key={exo.id}
-                        exercise={exo}
-                        history={getLastSessionData(exo.id)}
-                        todaysLog={logs[sessionKey]?.[exo.id]}
-                        notes={notes[exo.id]}
-                        onUpdateLog={handleUpdateLog}
-                        onStartTimer={setTimer}
-                        onSaveNotes={handleSaveNotes}
-                    />
-                ))}
-
-                <button 
-                    onClick={() => {
-                        if(confirm("Séance terminée ! Voir le récapitulatif ?")) {
-                            setActiveTab('dashboard');
-                        }
-                    }}
-                    className="w-full mt-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg uppercase tracking-widest shadow-lg shadow-cyan-900/20 transition-all active:scale-[0.98]"
-                >
-                    Terminer la séance
-                </button>
+                <div className="space-y-4">
+                    {currentExercises.map(exo => (
+                        <ExerciseModule 
+                            key={exo.id} exercise={exo}
+                            history={getLastSessionData(exo.id)}
+                            logs={{ currentSession: userData.logs?.[sessionKey], allLogs: userData.logs }}
+                            notes={userData.notes?.[exo.id]}
+                            onUpdateLog={handleUpdateLog}
+                            onStartTimer={setTimer}
+                            onSaveNotes={(id, n) => {
+                                const newNotes = { ...userData.notes, [id]: n };
+                                setUserData(prev => ({ ...prev, notes: newNotes }));
+                                saveToFire('notes', newNotes);
+                            }}
+                        />
+                    ))}
+                </div>
+                <button onClick={() => setActiveTab('dashboard')} className="w-full mt-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl shadow-lg shadow-cyan-900/20 transition-all active:scale-[0.98]">Terminer la séance</button>
             </div>
         )}
         
-        {activeTab === 'tools' && (
-            <ToolsPage logs={logs} />
-        )}
+        {activeTab === 'tools' && <ToolsPage profile={userData.profile} />}
 
         {activeTab === 'settings' && (
              <SettingsPage 
-                profile={profile}
-                settings={settings}
+                profile={userData.profile}
+                settings={userData.settings}
                 onUpdateProfile={handleUpdateProfile}
                 onUpdateSettings={handleUpdateSettings}
                 onResetData={handleResetData}
@@ -993,35 +1102,38 @@ export default function App() {
       </main>
 
       {/* OVERLAYS */}
-      {timer && <TimerBar duration={timer} settings={settings} onReset={() => setTimer(null)} onClose={() => setTimer(null)} />}
+      {timer && <TimerBar duration={timer} settings={userData.settings} onReset={() => setTimer(null)} onClose={() => setTimer(null)} />}
       {showWarmUp && <WarmUpModal onClose={() => setShowWarmUp(false)} />}
+      {showRpeHelp && (
+          <Modal title="Guide RPE (Effort Ressenti)" onClose={() => setShowRpeHelp(false)}>
+              <div className="space-y-2 text-sm text-slate-300">
+                  <div className="p-2 bg-green-900/20 border border-green-500/30 rounded"><span className="font-bold text-green-400">RPE 6-7:</span> Échauffement, facile. Encore 3-4 reps en réserve.</div>
+                  <div className="p-2 bg-yellow-900/20 border border-yellow-500/30 rounded"><span className="font-bold text-yellow-400">RPE 8:</span> Difficile. Encore 2 reps possibles. (Zone Hypertrophie)</div>
+                  <div className="p-2 bg-orange-900/20 border border-orange-500/30 rounded"><span className="font-bold text-orange-400">RPE 9:</span> Très difficile. 1 seule rep possible.</div>
+                  <div className="p-2 bg-red-900/20 border border-red-500/30 rounded"><span className="font-bold text-red-400">RPE 10:</span> Échec. Impossible de faire une rep de plus.</div>
+              </div>
+          </Modal>
+      )}
 
       {/* BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 pb-safe">
-          <div className="max-w-md mx-auto flex justify-between items-center h-16 px-6">
-              <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 w-12 ${activeTab === 'dashboard' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}>
-                  <BarChart2 size={20} />
-                  <span className="text-[10px] font-bold uppercase">Suivi</span>
+          <div className="max-w-lg mx-auto flex justify-between items-center h-16 px-6">
+              <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 w-12 transition-colors ${activeTab === 'dashboard' ? 'text-cyan-400' : 'text-slate-500'}`}>
+                  <BarChart2 size={20} /> <span className="text-[9px] font-bold uppercase">Suivi</span>
               </button>
-              
-              <button onClick={() => setActiveTab('tools')} className={`flex flex-col items-center gap-1 w-12 ${activeTab === 'tools' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}>
-                  <Calculator size={20} />
-                  <span className="text-[10px] font-bold uppercase">Outils</span>
+              <button onClick={() => setActiveTab('tools')} className={`flex flex-col items-center gap-1 w-12 transition-colors ${activeTab === 'tools' ? 'text-cyan-400' : 'text-slate-500'}`}>
+                  <Calculator size={20} /> <span className="text-[9px] font-bold uppercase">Outils</span>
               </button>
-
-              <button onClick={() => setActiveTab('workout')} className="flex flex-col items-center gap-1 w-12 -mt-8">
+              <button onClick={() => setActiveTab('workout')} className="flex flex-col items-center justify-center -mt-8">
                   <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-slate-900 transition-all ${activeTab === 'workout' ? 'bg-cyan-500 text-slate-900 scale-110' : 'bg-slate-700 text-slate-400'}`}>
                     <Play size={24} fill="currentColor" className={activeTab === 'workout' ? 'ml-1' : ''} />
                   </div>
               </button>
-              
-              <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 w-12 ${activeTab === 'settings' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}>
-                  <Settings size={20} />
-                  <span className="text-[10px] font-bold uppercase">Profil</span>
+              <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 w-12 transition-colors ${activeTab === 'settings' ? 'text-cyan-400' : 'text-slate-500'}`}>
+                  <Settings size={20} /> <span className="text-[9px] font-bold uppercase">Profil</span>
               </button>
           </div>
       </nav>
-
     </div>
   );
 }
