@@ -5,10 +5,11 @@ import {
   BarChart2, Settings, Dumbbell, 
   Check, X, Play, User, 
   Scale, Utensils, Droplet, Moon, Trash2, Download, Ruler,
-  Calculator, Disc, Save, Share2, Clock, StickyNote, Flame, Pause, PlayCircle
+  Calculator, Disc, Save, Share2, Clock, StickyNote, Flame, Pause, PlayCircle,
+  Info, Volume2, VolumeX, Upload, Battery, Youtube
 } from 'lucide-react';
 
-// --- DATA (Programme inchangé) ---
+// --- DATA (Avec Tutoriels Réintégrés) ---
 const WarmUpRoutine = [
   { name: "Rotations externes élastique (L-Fly)", reps: "2 x 15-20" },
   { name: "Dislocations élastique/bâton", reps: "2 x 10" },
@@ -20,48 +21,48 @@ const ProgramData = {
   weeks: {
     "A": {
       "Jour 1 (Push)": [
-        { id: 101, name: "Développé incliné haltères", sets: 4, targetReps: "8-12", rest: 90 },
-        { id: 102, name: "Presse pectoraux guidée", sets: 4, targetReps: "10-12", rest: 90 },
-        { id: 103, name: "Écarté poulie bas → haut", sets: 3, targetReps: "12-15", rest: 60 },
-        { id: 104, name: "Élévations latérales", sets: 4, targetReps: "15-20", rest: 60 },
-        { id: 105, name: "Floor Press", sets: 3, targetReps: "10-12", rest: 90 },
-        { id: 106, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60 },
-        { id: 107, name: "Extension corde triceps", sets: 4, targetReps: "10-15", rest: 60 }
+        { id: 101, name: "Développé incliné haltères", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Banc incliné à 30° max. Prise neutre (paumes face à face) pour protéger l'épaule. Descendez les haltères vers le creux de l'aisselle." },
+        { id: 102, name: "Presse pectoraux guidée", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Réglez le siège pour que les poignées soient au niveau des tétons. Gardez les coudes sous le niveau des épaules. Ne décollez pas le dos." },
+        { id: 103, name: "Écarté poulie bas → haut", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Poulies au sol. Tirez vers le haut et l'intérieur (niveau visage). Gardez les bras semi-fléchis comme pour faire un câlin à un arbre." },
+        { id: 104, name: "Élévations latérales", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Bras légèrement fléchis. Montez les coudes (pas les mains) jusqu'à la hauteur des épaules. Ne balancez pas le buste." },
+        { id: 105, name: "Floor Press", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Allongé au sol avec haltères. Les coudes touchent le sol à chaque rep, ce qui limite l'amplitude et protège l'articulation." },
+        { id: 106, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Poulie haute. Tirez la corde vers vos yeux en écartant les mains. Finissez en position 'double biceps'. Indispensable pour la coiffe." },
+        { id: 107, name: "Extension corde triceps", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Coudes collés aux côtes. Écartez la corde en bas du mouvement pour contracter le triceps." }
       ],
       "Jour 2 (Pull)": [
-        { id: 201, name: "Tractions / Tirage neutre", sets: 4, targetReps: "8-10", rest: 120 },
-        { id: 202, name: "Rowing haltère", sets: 4, targetReps: "10-12", rest: 90 },
-        { id: 203, name: "Tirage horizontal", sets: 3, targetReps: "10-12", rest: 90 },
-        { id: 204, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60 },
-        { id: 205, name: "Curl incliné", sets: 3, targetReps: "10-12", rest: 60 }
+        { id: 201, name: "Tractions / Tirage neutre", sets: 4, targetReps: "8-10", rest: 120, tutorial: "Prise neutre ou supination préférée. Sortez la poitrine. Tirez les coudes vers le bas." },
+        { id: 202, name: "Rowing haltère", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Un genou sur le banc. Dos plat. Tirez l'haltère vers la hanche (pas vers l'épaule)." },
+        { id: 203, name: "Tirage horizontal", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Buste droit. Tirez vers le nombril. Serrez les omoplates à la fin du mouvement." },
+        { id: 204, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Voir Jour 1. Focus sur la rotation externe." },
+        { id: 205, name: "Curl incliné", sets: 3, targetReps: "10-12", rest: 60, tutorial: "Banc à 45°. Bras en arrière du corps. Étire le chef long du biceps." }
       ],
       "Jour 3 (Legs)": [
-        { id: 301, name: "Presse à cuisses", sets: 4, targetReps: "10-15", rest: 120 },
-        { id: 302, name: "Fentes marchées", sets: 3, targetReps: "12 pas", rest: 90 },
-        { id: 303, name: "Leg extension", sets: 3, targetReps: "12-15", rest: 60 },
-        { id: 304, name: "Leg curl", sets: 4, targetReps: "10-15", rest: 60 },
-        { id: 305, name: "Mollets debout", sets: 4, targetReps: "15-20", rest: 45 }
+        { id: 301, name: "Presse à cuisses", sets: 4, targetReps: "10-15", rest: 120, tutorial: "Pieds largeur bassin. Ne tendez jamais les jambes à fond (gardez une légère flexion)." },
+        { id: 302, name: "Fentes marchées", sets: 3, targetReps: "12 pas", rest: 90, tutorial: "Grands pas. Le genou arrière frôle le sol. Buste droit." },
+        { id: 303, name: "Leg extension", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Contrôlez la descente. Ne donnez pas d'élan." },
+        { id: 304, name: "Leg curl", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Tirez les talons vers les fesses. Gardez le bassin plaqué au banc." },
+        { id: 305, name: "Mollets debout", sets: 4, targetReps: "15-20", rest: 45, tutorial: "Montez le plus haut possible sur la pointe des pieds." }
       ]
     },
     "B": {
       "Jour 1 (Push)": [
-        { id: 401, name: "Dev. Incliné Smith", sets: 4, targetReps: "8-12", rest: 90 },
-        { id: 402, name: "Dev. Couché Haltères", sets: 4, targetReps: "8-12", rest: 90 },
-        { id: 403, name: "Câbles croisés", sets: 3, targetReps: "12-15", rest: 60 },
-        { id: 404, name: "Élévations latérales poulie", sets: 4, targetReps: "15-20", rest: 60 },
-        { id: 405, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60 }
+        { id: 401, name: "Dev. Incliné Smith", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Barre guidée. Banc à 30°. Contrôle total." },
+        { id: 402, name: "Dev. Couché Haltères", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Prise neutre pour l'épaule. Resserrez les omoplates." },
+        { id: 403, name: "Câbles croisés", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Poulies hautes. Croisez les mains en bas. Focus bas de pecs." },
+        { id: 404, name: "Élévations latérales poulie", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Poulie basse derrière le dos. Tirez sur le côté." },
+        { id: 405, name: "Face pull", sets: 4, targetReps: "15-20", rest: 60, tutorial: "Toujours et encore. C'est la clé de la santé épaule." }
       ],
       "Jour 2 (Pull)": [
-        { id: 501, name: "Tirage vertical neutre", sets: 4, targetReps: "8-12", rest: 90 },
-        { id: 502, name: "Rowing machine", sets: 3, targetReps: "10-12", rest: 90 },
-        { id: 503, name: "Pull-over poulie", sets: 3, targetReps: "12-15", rest: 60 },
-        { id: 504, name: "Curl EZ", sets: 3, targetReps: "10-12", rest: 60 }
+        { id: 501, name: "Tirage vertical neutre", sets: 4, targetReps: "8-12", rest: 90, tutorial: "Poignée triangle V-Bar. Tirez vers le haut des pecs." },
+        { id: 502, name: "Rowing machine", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Appui thoracique si possible. Tirez les coudes loin derrière." },
+        { id: 503, name: "Pull-over poulie", sets: 3, targetReps: "12-15", rest: 60, tutorial: "Bras tendus. Amenez la barre des yeux jusqu'aux cuisses. Travail du grand dorsal." },
+        { id: 504, name: "Curl EZ", sets: 3, targetReps: "10-12", rest: 60, tutorial: "Barre tordue. Coudes fixes." }
       ],
       "Jour 3 (Legs)": [
-        { id: 601, name: "Squat guidé", sets: 4, targetReps: "8-12", rest: 120 },
-        { id: 602, name: "Hip Thrust", sets: 4, targetReps: "10-12", rest: 90 },
-        { id: 603, name: "Bulgarian split squat", sets: 3, targetReps: "10-12", rest: 90 },
-        { id: 604, name: "Leg curl allongé", sets: 4, targetReps: "10-15", rest: 60 }
+        { id: 601, name: "Squat guidé", sets: 4, targetReps: "8-12", rest: 120, tutorial: "Pieds un peu en avant. Dos droit. Descendez les fesses." },
+        { id: 602, name: "Hip Thrust", sets: 4, targetReps: "10-12", rest: 90, tutorial: "Barre sur le bassin. Contractez fort les fessiers en haut." },
+        { id: 603, name: "Bulgarian split squat", sets: 3, targetReps: "10-12", rest: 90, tutorial: "Un pied sur banc derrière. Descendez verticalement." },
+        { id: 604, name: "Leg curl allongé", sets: 4, targetReps: "10-15", rest: 60, tutorial: "Classique ischios. Pas d'élan." }
       ]
     }
   }
@@ -102,7 +103,6 @@ const calculateBMI = (weight, heightCm) => {
 
 // --- COMPONENTS ---
 
-// NEW: Session Timer Component
 const SessionTimer = () => {
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
@@ -137,7 +137,6 @@ const SessionTimer = () => {
     );
 };
 
-// NEW: WarmUp Modal
 const WarmUpModal = ({ onClose }) => (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
         <div className="bg-slate-900 rounded-xl max-w-sm w-full border border-slate-700 overflow-hidden shadow-2xl">
@@ -162,17 +161,20 @@ const WarmUpModal = ({ onClose }) => (
     </div>
 );
 
-// 1. Technical Timer (Existing)
-const TimerBar = ({ duration, onReset, onClose }) => {
+const TimerBar = ({ duration, onReset, onClose, settings }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(true);
 
   useEffect(() => {
     let interval;
     if (isRunning && timeLeft > 0) interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    else if (timeLeft === 0) setIsRunning(false);
+    else if (timeLeft === 0) {
+        setIsRunning(false);
+        if(settings?.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        // Simple beep logic would go here if sound enabled
+    }
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, settings]);
 
   const progress = ((duration - timeLeft) / duration) * 100;
 
@@ -197,7 +199,6 @@ const TimerBar = ({ duration, onReset, onClose }) => {
   );
 };
 
-// 2. Pro Input Row (Existing)
 const SetRow = ({ setNumber, previousData, currentData, onChange, onValidate }) => {
   const [weight, setWeight] = useState(currentData?.weight || previousData?.weight || '');
   const [reps, setReps] = useState(currentData?.reps || previousData?.reps || '');
@@ -268,13 +269,12 @@ const SetRow = ({ setNumber, previousData, currentData, onChange, onValidate }) 
   );
 };
 
-// Updated: Exercise Module with Notes
 const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTimer, notes, onSaveNotes }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false); // NEW: Tutorial Toggle
   const [localNote, setLocalNote] = useState(notes || '');
 
-  // Sync internal state if prop changes
   useEffect(() => { setLocalNote(notes || ''); }, [notes]);
 
   const handleSaveNote = () => {
@@ -310,7 +310,9 @@ const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTime
         <div className="flex items-center gap-3">
             <div className={`w-1 h-8 rounded-full ${currentVolume > 0 ? 'bg-cyan-500' : 'bg-slate-700'}`}></div>
             <div>
-                <h3 className="font-bold text-slate-200 text-sm sm:text-base">{exercise.name}</h3>
+                <h3 className="font-bold text-slate-200 text-sm sm:text-base flex items-center gap-2">
+                    {exercise.name}
+                </h3>
                 <div className="flex gap-3 mt-1">
                     <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
                         <Dumbbell size={10}/> {exercise.sets} séries
@@ -324,6 +326,12 @@ const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTime
             </div>
         </div>
         <div className="flex items-center gap-3">
+             <button 
+                onClick={(e) => { e.stopPropagation(); setShowTutorial(!showTutorial); }}
+                className={`p-2 rounded-full transition-colors ${showTutorial ? 'bg-blue-500/20 text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
+             >
+                <Info size={18} />
+             </button>
              {notes && <div className="w-2 h-2 rounded-full bg-yellow-500" title="Notes présentes"></div>}
              {currentVolume > 0 && <span className="text-xs font-mono text-cyan-500">{currentVolume} kg</span>}
              {isExpanded ? <ChevronDown size={18} className="text-slate-500"/> : <ChevronRight size={18} className="text-slate-500"/>}
@@ -332,6 +340,28 @@ const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTime
 
       {isExpanded && (
         <div className="p-2 bg-slate-950/30">
+            {/* NEW: Tutorial Section */}
+            {showTutorial && (
+                <div className="px-3 py-3 mb-3 bg-blue-900/10 border border-blue-500/20 rounded-lg animate-in slide-in-from-top-2">
+                    <div className="flex gap-3">
+                        <Info size={20} className="text-blue-500 flex-shrink-0 mt-1"/>
+                        <div>
+                            <p className="text-sm text-blue-100 leading-relaxed mb-3">
+                                {exercise.tutorial || "Aucune consigne disponible."}
+                            </p>
+                            <a 
+                                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + " musculation technique")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors"
+                            >
+                                <Youtube size={14} /> Voir démo vidéo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Toolbar */}
             <div className="flex justify-end px-2 mb-2">
                 <button 
@@ -358,7 +388,6 @@ const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTime
                 </div>
             )}
             
-            {/* Display Notes if not editing */}
             {!showNotes && notes && (
                 <div className="px-2 mb-4">
                     <div className="bg-yellow-900/10 border-l-2 border-yellow-600 p-2 text-xs text-yellow-200/80 italic">
@@ -394,7 +423,6 @@ const ExerciseModule = ({ exercise, history, todaysLog, onUpdateLog, onStartTime
   );
 };
 
-// 3. Dashboard (Existing)
 const Dashboard = ({ logs, profile, habits, onUpdateProfile, onUpdateHabit }) => {
     const chartData = useMemo(() => {
         const volumeByDate = {};
@@ -537,7 +565,6 @@ const Dashboard = ({ logs, profile, habits, onUpdateProfile, onUpdateHabit }) =>
     );
 };
 
-// 4. Tools Page (Existing)
 const ToolsPage = ({ logs }) => {
     const [targetWeight, setTargetWeight] = useState('');
     const [barWeight, setBarWeight] = useState(20);
@@ -697,11 +724,12 @@ const ToolsPage = ({ logs }) => {
     );
 };
 
-// 5. Settings Page (Existing)
-const SettingsPage = ({ profile, onUpdateProfile, onResetData }) => {
+// NEW: Updated Settings Page with Import & Options
+const SettingsPage = ({ profile, settings, onUpdateProfile, onUpdateSettings, onResetData, onImportData }) => {
     return (
         <div className="p-4 space-y-6 animate-in slide-in-from-right-10">
             <h2 className="text-xl font-bold text-white mb-6">Réglages</h2>
+            
             <section className="space-y-4">
                 <h3 className="text-xs font-bold uppercase text-slate-500">Profil Utilisateur</h3>
                 <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
@@ -718,18 +746,57 @@ const SettingsPage = ({ profile, onUpdateProfile, onResetData }) => {
                     </div>
                 </div>
             </section>
+            
+            {/* NEW: App Preferences */}
             <section className="space-y-4">
-                <h3 className="text-xs font-bold uppercase text-slate-500">Zone de Danger</h3>
-                <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-4">
-                    <p className="text-xs text-red-400 mb-4">
-                        La suppression des données est irréversible.
-                    </p>
-                    <button 
-                        onClick={onResetData}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-900/50 hover:bg-red-900 text-red-200 rounded border border-red-800 transition-colors text-sm font-bold"
-                    >
-                        <Trash2 size={16} /> Tout effacer
-                    </button>
+                <h3 className="text-xs font-bold uppercase text-slate-500">Préférences</h3>
+                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                     <button 
+                        onClick={() => onUpdateSettings('sound', !settings.sound)}
+                        className="w-full p-4 border-b border-slate-700 flex justify-between items-center hover:bg-slate-700/50"
+                     >
+                        <div className="flex items-center gap-3">
+                            {settings.sound ? <Volume2 size={20} className="text-cyan-500"/> : <VolumeX size={20} className="text-slate-500"/>}
+                            <span className="text-sm font-medium text-slate-200">Sons (Timer)</span>
+                        </div>
+                        <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.sound ? 'bg-cyan-600' : 'bg-slate-600'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.sound ? 'left-6' : 'left-1'}`}></div>
+                        </div>
+                     </button>
+                     <button 
+                        onClick={() => onUpdateSettings('vibration', !settings.vibration)}
+                        className="w-full p-4 border-b border-slate-700 flex justify-between items-center hover:bg-slate-700/50"
+                     >
+                        <div className="flex items-center gap-3">
+                            <Activity size={20} className={settings.vibration ? "text-cyan-500" : "text-slate-500"}/>
+                            <span className="text-sm font-medium text-slate-200">Vibrations</span>
+                        </div>
+                        <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.vibration ? 'bg-cyan-600' : 'bg-slate-600'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.vibration ? 'left-6' : 'left-1'}`}></div>
+                        </div>
+                     </button>
+                </div>
+            </section>
+
+            <section className="space-y-4">
+                <h3 className="text-xs font-bold uppercase text-slate-500">Gestion des Données</h3>
+                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden p-4 space-y-4">
+                    <label className="flex items-center gap-3 w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white rounded border border-slate-500 justify-center cursor-pointer transition">
+                        <Upload size={16}/> Import Sauvegarde (JSON)
+                        <input type="file" accept=".json" onChange={onImportData} className="hidden" />
+                    </label>
+
+                    <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-4 mt-4">
+                        <p className="text-xs text-red-400 mb-4">
+                            Zone Danger : Suppression irréversible.
+                        </p>
+                        <button 
+                            onClick={onResetData}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-900/50 hover:bg-red-900 text-red-200 rounded border border-red-800 transition-colors text-sm font-bold"
+                        >
+                            <Trash2 size={16} /> Tout effacer
+                        </button>
+                    </div>
                 </div>
             </section>
         </div>
@@ -747,7 +814,8 @@ export default function App() {
   const [logs, setLogs] = useStickyState({}, "pro_workout_logs");
   const [profile, setProfile] = useStickyState({ name: '', height: '', weight: '', age: '' }, "pro_user_profile");
   const [habits, setHabits] = useStickyState({}, "pro_daily_habits");
-  const [notes, setNotes] = useStickyState({}, "pro_exercise_notes"); // NEW: Persistent Notes
+  const [notes, setNotes] = useStickyState({}, "pro_exercise_notes");
+  const [settings, setSettings] = useStickyState({ sound: true, vibration: true }, "pro_user_settings"); // NEW
   
   const [timer, setTimer] = useState(null);
   const [showWarmUp, setShowWarmUp] = useState(false);
@@ -769,6 +837,7 @@ export default function App() {
   };
 
   const handleUpdateProfile = (field, value) => setProfile(prev => ({ ...prev, [field]: value }));
+  const handleUpdateSettings = (field, value) => setSettings(prev => ({ ...prev, [field]: value }));
   const handleUpdateHabit = (date, habitId) => setHabits(prev => ({ ...prev, [date]: { ...prev[date], [habitId]: !prev[date]?.[habitId] } }));
   const handleSaveNotes = (exoId, note) => setNotes(prev => ({ ...prev, [exoId]: note }));
 
@@ -777,6 +846,24 @@ export default function App() {
           localStorage.clear();
           window.location.reload();
       }
+  };
+
+  const handleImportData = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          try {
+              const importedData = JSON.parse(event.target.result);
+              if (confirm("Remplacer les données actuelles par le fichier importé ?")) {
+                  setLogs(importedData);
+                  alert("Import réussi !");
+              }
+          } catch (error) {
+              alert("Erreur: Fichier invalide.");
+          }
+      };
+      reader.readAsText(file);
   };
 
   const currentExercises = ProgramData.weeks[activeWeek][activeDay];
@@ -794,7 +881,6 @@ export default function App() {
                    </div>
                    <span className="font-bold tracking-tight text-slate-100 hidden sm:inline">REHAB<span className="text-cyan-500">PRO</span></span>
                </div>
-               {/* NEW: Session Timer in Header */}
                <SessionTimer />
            </div>
            
@@ -843,7 +929,6 @@ export default function App() {
 
         {activeTab === 'workout' && (
             <div className="px-4 animate-in fade-in duration-300">
-                {/* NEW: Warm Up Trigger */}
                 <button 
                     onClick={() => setShowWarmUp(true)}
                     className="w-full mb-6 bg-gradient-to-r from-orange-900/40 to-slate-900 border border-orange-700/30 p-3 rounded-lg flex items-center justify-between group hover:border-orange-500/50 transition-all"
@@ -897,15 +982,18 @@ export default function App() {
 
         {activeTab === 'settings' && (
              <SettingsPage 
-                profile={profile} 
+                profile={profile}
+                settings={settings}
                 onUpdateProfile={handleUpdateProfile}
+                onUpdateSettings={handleUpdateSettings}
                 onResetData={handleResetData}
+                onImportData={handleImportData}
              />
         )}
       </main>
 
       {/* OVERLAYS */}
-      {timer && <TimerBar duration={timer} onReset={() => setTimer(null)} onClose={() => setTimer(null)} />}
+      {timer && <TimerBar duration={timer} settings={settings} onReset={() => setTimer(null)} onClose={() => setTimer(null)} />}
       {showWarmUp && <WarmUpModal onClose={() => setShowWarmUp(false)} />}
 
       {/* BOTTOM NAV */}
